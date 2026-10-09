@@ -57,7 +57,7 @@
       .shell {
         width: min(100% - 2rem, 76rem);
         margin: auto;
-        padding: 1.1rem 0 5rem;
+        padding: 1.1rem 0 calc(7rem + env(safe-area-inset-bottom));
       }
       .topbar,
       .panel-head,
@@ -111,18 +111,29 @@
         color: var(--muted);
       }
       .tabs {
-        position: sticky;
-        top: 0.65rem;
-        z-index: 20;
+        position: fixed;
+        left: 50%;
+        bottom: max(0.75rem, env(safe-area-inset-bottom));
+        z-index: 100;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 0.4rem;
-        margin: 1.3rem 0;
+        width: min(calc(100% - 1rem), 32rem);
+        margin: 0;
         padding: 0.4rem;
-        border: 1px solid var(--line);
-        border-radius: 1.15rem;
-        background: rgba(7, 20, 29, 0.88);
-        backdrop-filter: blur(18px);
+        transform: translateX(-50%);
+        border: 1px solid rgba(168, 215, 234, 0.22);
+        border-radius: 1.35rem;
+        background: linear-gradient(
+          145deg,
+          rgba(32, 57, 72, 0.68),
+          rgba(7, 20, 29, 0.58)
+        );
+        box-shadow:
+          0 1.1rem 2.8rem rgba(0, 0, 0, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.13);
+        -webkit-backdrop-filter: saturate(165%) blur(22px);
+        backdrop-filter: saturate(165%) blur(22px);
       }
       .tab {
         display: flex;
@@ -146,9 +157,15 @@
         transform: none;
       }
       .tab.active {
-        background: var(--surface2);
+        background: linear-gradient(
+          145deg,
+          rgba(72, 112, 132, 0.58),
+          rgba(25, 52, 67, 0.64)
+        );
         color: var(--text);
-        box-shadow: inset 0 0 0 1px #315666;
+        box-shadow:
+          inset 0 0 0 1px rgba(179, 226, 244, 0.18),
+          0 0.25rem 0.8rem rgba(0, 0, 0, 0.2);
       }
       .panel[hidden] {
         display: none;
@@ -592,9 +609,6 @@
         .intro {
           margin: 1.5rem 0.2rem 1rem;
         }
-        .tabs {
-          top: 0.35rem;
-        }
         .tab {
           font-size: 0.92rem;
         }
@@ -702,12 +716,12 @@
         <p>充电、取件、外卖柜和餐饮入口集中在这里。</p>
       </section>
       <nav class="tabs" aria-label="功能板块">
-        <button class="tab" data-panel="takeout">▦ 外卖</button
+        <button class="tab active" data-panel="takeout">▦ 外卖</button
         ><button class="tab" data-panel="parcel">▣ 快递</button
-        ><button class="tab active" data-panel="charging">ϟ 充电</button
+        ><button class="tab" data-panel="charging">ϟ 充电</button
         ><button class="tab" data-panel="food">◉ 餐饮</button>
       </nav>
-      <section class="panel" id="panel-takeout" hidden>
+      <section class="panel" id="panel-takeout">
         <div class="panel-head">
           <div>
             <h2>外卖柜</h2>
@@ -753,8 +767,7 @@
           <div class="parse-result">
             <div class="parse-copy" id="parcel-result">等待粘贴短信</div>
             <div class="parse-actions">
-              <button class="button ghost" id="copy-code" disabled>
-                复制取件码</button
+              <button class="button ghost" id="paste-message">粘贴并替换</button
               ><button class="button primary" id="open-cabinet" disabled>
                 复制并打开柜机
               </button>
@@ -763,11 +776,11 @@
         </div>
         <div class="cabinet-grid" id="cabinet-grid"></div>
       </section>
-      <section class="panel" id="panel-charging">
+      <section class="panel" id="panel-charging" hidden>
         <div class="panel-head">
           <div>
             <h2>充电桩状态</h2>
-            <p id="query-meta">正在查询 11 台设备。</p>
+            <p id="query-meta">进入本页后自动查询。</p>
           </div>
           <div>
             <button class="button secondary" id="credential-toggle">
@@ -866,6 +879,7 @@
           );
       const tabs = $$(".tab"),
         panels = $$(".panel");
+      let chargingQueried = false;
       let pressState = null;
       const feedbackTarget = (target) =>
         target.closest?.(".button, .quick-link, .cabinet");
@@ -913,6 +927,10 @@
           panels.forEach(
             (p) => (p.hidden = p.id !== `panel-${t.dataset.panel}`),
           );
+          if (t.dataset.panel === "charging" && !chargingQueried) {
+            chargingQueried = true;
+            queryAll();
+          }
         }),
       );
       const cabinetUrls = [
@@ -946,10 +964,18 @@
             : parsedCabinet
               ? `已识别 ${parsedCabinet}号柜，未识别8位取件码`
               : "未识别到取件码和柜号";
-        $("#copy-code").disabled = !parsedCode;
         $("#open-cabinet").disabled = !(parsedCode && parsedCabinet);
       }
       $("#parcel-message").addEventListener("input", parseParcel);
+      $("#paste-message").addEventListener("click", async () => {
+        try {
+          $("#parcel-message").value = await navigator.clipboard.readText();
+          parseParcel();
+        } catch {
+          $("#parcel-result").textContent =
+            "无法读取剪贴板，请允许剪贴权限后重试";
+        }
+      });
       async function copyCode() {
         if (!parsedCode) return;
         try {
@@ -960,7 +986,6 @@
           $("#parcel-result").textContent = `请手动复制：${parsedCode}`;
         }
       }
-      $("#copy-code").addEventListener("click", copyCode);
       $("#open-cabinet").addEventListener("click", async () => {
         await copyCode();
         if (parsedCabinet) location.href = cabinetUrls[parsedCabinet - 1];
@@ -1077,6 +1102,10 @@
         queryButton.disabled = true;
         queryButton.innerHTML = '<span class="spin"></span>查询中';
         notice.hidden = true;
+        summary.hidden = true;
+        queryMeta.textContent = "正在刷新 11 台设备…";
+        grid.innerHTML =
+          '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
         try {
           const { data } = await post("/api/status", {
             credentialText: storedCredential(),
@@ -1098,8 +1127,11 @@
             credentialText.focus();
           }
           bindOpen();
+          return { expired };
         } catch (e) {
           grid.innerHTML = `<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`;
+          queryMeta.textContent = "查询失败";
+          return null;
         } finally {
           queryButton.disabled = false;
           queryButton.textContent = "重新查询";
@@ -1124,17 +1156,18 @@
             text: pastedCredential,
           });
           sessionStorage.setItem(credentialStorageKey, pastedCredential);
-          credentialResult.textContent = r.message;
-          credentialText.value = "";
-          credentialPanel.hidden = true;
-          await queryAll();
+          credentialResult.textContent = `${r.message}，正在刷新全部状态…`;
+          const result = await queryAll();
+          if (result && !result.expired) {
+            credentialText.value = "";
+            credentialPanel.hidden = true;
+          }
         } catch (e) {
           credentialResult.textContent = e.message;
         } finally {
           credentialSave.disabled = false;
         }
       });
-      queryAll();
     </script>
   </body>
 </html>
