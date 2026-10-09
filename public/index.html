@@ -197,6 +197,20 @@
       .charging-head .button {
         flex: 0 0 auto;
       }
+      .charging-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        min-width: 0;
+      }
+      .query-error {
+        max-width: min(32rem, 55vw);
+        color: #ffc0c0;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        text-align: right;
+      }
       .button {
         min-height: 2.75rem;
         padding: 0 1rem;
@@ -624,43 +638,6 @@
         opacity: 1;
         transform: translate(-50%, -50%);
       }
-      .error-dialog-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 110;
-        display: grid;
-        place-items: center;
-        padding: 1rem;
-        background: rgba(2, 10, 15, 0.62);
-        -webkit-backdrop-filter: blur(6px);
-        backdrop-filter: blur(6px);
-      }
-      .error-dialog-backdrop[hidden] {
-        display: none;
-      }
-      .error-dialog {
-        width: min(100%, 24rem);
-        padding: 1.25rem;
-        border-radius: 1rem;
-        background: #fff;
-        color: #10202a;
-        box-shadow: 0 1.4rem 3.5rem rgba(0, 0, 0, 0.38);
-      }
-      .error-dialog h3 {
-        margin: 0 0 0.65rem;
-        font-size: 1.05rem;
-      }
-      .error-dialog p {
-        margin: 0;
-        color: #40535f;
-        line-height: 1.65;
-        white-space: pre-line;
-      }
-      .error-dialog .button {
-        display: block;
-        width: 100%;
-        margin-top: 1rem;
-      }
       .footer {
         margin-top: 2rem;
         color: var(--muted);
@@ -713,6 +690,13 @@
         }
         .panel-head.charging-head .button {
           margin-top: 0;
+        }
+        .charging-actions {
+          gap: 0.5rem;
+        }
+        .query-error {
+          max-width: 48vw;
+          font-size: 0.72rem;
         }
         .link-grid,
         .device-grid {
@@ -869,7 +853,10 @@
             <h2>充电桩状态</h2>
             <p id="query-meta">进入本页后自动查询。</p>
           </div>
-          <button class="button primary" id="query-button">重新查询</button>
+          <div class="charging-actions">
+            <span class="query-error" id="query-error" hidden></span>
+            <button class="button primary" id="query-button">重新查询</button>
+          </div>
         </div>
         <section class="credential-panel" id="credential-panel" hidden>
           <h3>粘贴小程序授权响应</h3>
@@ -916,21 +903,6 @@
         aria-live="polite"
         hidden
       ></div>
-      <div class="error-dialog-backdrop" id="error-dialog" hidden>
-        <section
-          class="error-dialog"
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="error-dialog-title"
-          aria-describedby="error-dialog-message"
-        >
-          <h3 id="error-dialog-title">查询未完成</h3>
-          <p id="error-dialog-message"></p>
-          <button class="button primary" id="error-dialog-confirm">
-            确认
-          </button>
-        </section>
-      </div>
       <section class="panel" id="panel-food" hidden>
         <div class="panel-head">
           <div>
@@ -1099,9 +1071,7 @@
         credentialResult = $("#credential-result"),
         credentialSave = $("#credential-save"),
         credentialToast = $("#credential-toast"),
-        errorDialog = $("#error-dialog"),
-        errorDialogMessage = $("#error-dialog-message"),
-        errorDialogConfirm = $("#error-dialog-confirm");
+        queryError = $("#query-error");
       const credentialStorageKey = "bit-charging-credential-response";
       const storedCredential = () =>
         sessionStorage.getItem(credentialStorageKey) || "";
@@ -1115,19 +1085,6 @@
         F: "通讯故障",
         B: "设备故障",
       };
-      const chargingDevices = [
-        ["building-13-1", "13号楼1号机"],
-        ["building-13-2", "13号楼2号机"],
-        ["building-7-1", "7号楼1号机"],
-        ["building-7-2", "7号楼2号机"],
-        ["building-12-1", "12号楼1号机"],
-        ["building-12-2", "12号楼2号机"],
-        ["building-11-1", "11号楼1号机"],
-        ["building-11-2", "11号楼2号机"],
-        ["defense-1", "国防科技园1号机"],
-        ["defense-2", "国防科技园2号机"],
-        ["new-building-1", "新1学生公寓"],
-      ].map(([id, name]) => ({ id, name }));
       const time = (i) =>
         new Intl.DateTimeFormat("zh-CN", {
           hour: "2-digit",
@@ -1154,16 +1111,12 @@
       }
       function showQueryError(error) {
         const parts = [error.errorPoint, error.action].filter(Boolean);
-        errorDialogMessage.textContent = parts.length
+        queryError.textContent = parts.length
           ? parts.join("\n\n")
           : error.message || "查询失败，请检查网络后重试";
-        errorDialog.hidden = false;
-        errorDialogConfirm.focus();
+        queryError.title = queryError.textContent;
+        queryError.hidden = false;
       }
-      errorDialogConfirm.addEventListener("click", () => {
-        errorDialog.hidden = true;
-        queryButton.focus();
-      });
       async function post(url, body) {
         try {
           const r = await fetch(url, {
@@ -1253,6 +1206,8 @@
           `${Date.now()}-${Math.random().toString(16).slice(2)}`;
         queryButton.disabled = true;
         queryButton.textContent = "查询中";
+        queryError.hidden = true;
+        queryError.textContent = "";
         if (!keepCurrentResults) {
           summary.hidden = true;
           queryMeta.textContent = "正在刷新 11 台设备…";
@@ -1290,24 +1245,10 @@
           return { expired };
         } catch (e) {
           showQueryError(e);
-          grid.innerHTML = chargingDevices
-            .map((device, index) =>
-              card(
-                {
-                  ...device,
-                  ok: false,
-                  message: e.message,
-                },
-                index,
-              ),
-            )
-            .join("");
-          $("#available-total").textContent = "0";
-          $("#device-total").textContent = `0/${chargingDevices.length}`;
-          $("#port-total").textContent = "0";
-          summary.hidden = false;
-          queryMeta.textContent = `查询失败：${e.message}`;
-          bindOpen();
+          if (!keepCurrentResults) {
+            grid.innerHTML = "";
+            summary.hidden = true;
+          }
           return null;
         } finally {
           queryButton.disabled = false;
