@@ -39,6 +39,8 @@
       body {
         margin: 0;
         min-height: 100vh;
+        -webkit-user-select: none;
+        user-select: none;
         background:
           radial-gradient(
             circle at 85% -5%,
@@ -53,6 +55,12 @@
       button,
       textarea {
         font: inherit;
+      }
+      input,
+      textarea,
+      [contenteditable="true"] {
+        -webkit-user-select: text;
+        user-select: text;
       }
       .shell {
         width: min(100% - 2rem, 76rem);
