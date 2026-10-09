@@ -14,6 +14,14 @@ function isCloudConfigured() {
   return Boolean(SUPABASE_URL && SUPABASE_KEY && ENCRYPTION_KEY_TEXT);
 }
 
+function cloudConfigStatus() {
+  return {
+    supabaseUrl: Boolean(SUPABASE_URL),
+    supabaseKey: Boolean(SUPABASE_KEY),
+    encryptionKey: Boolean(ENCRYPTION_KEY_TEXT),
+  };
+}
+
 function encryptionKey() {
   const key = Buffer.from(ENCRYPTION_KEY_TEXT, "base64");
   if (key.length !== 32) {
@@ -143,6 +151,7 @@ async function requestRefresh(source = "web") {
 }
 
 module.exports = {
+  cloudConfigStatus,
   getStoredCredentials,
   isCloudConfigured,
   patchRefresh,

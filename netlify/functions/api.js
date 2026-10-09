@@ -7,6 +7,7 @@ const {
   setRuntimeCredentials,
 } = require("../../server");
 const {
+  cloudConfigStatus,
   getStoredCredentials,
   isCloudConfigured,
   patchRefresh,
@@ -103,6 +104,10 @@ exports.handler = async (event) => {
       return response(200, {
         ok: true,
         cloud: isCloudConfigured(),
+        config: {
+          ...cloudConfigStatus(),
+          agentKey: Boolean(AGENT_KEY),
+        },
         build: BUILD_VERSION,
       });
     }
