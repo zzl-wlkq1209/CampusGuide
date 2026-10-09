@@ -11,6 +11,8 @@ const HOST = process.env.HOST || "127.0.0.1";
 const API_BASE = "https://mini.99cda.com/cda-mini-program/";
 const SCHEME_URL = "http://wx.99cda.com/cda-wx/generateScheme.do";
 const PUBLIC_DIR = path.join(__dirname, "public");
+const DEFAULT_HAR_PATH = path.join(__dirname, "captures", "mini.99cda.com_2026_10_09_01_31_25.har");
+const DEFAULT_LEGACY_HAR_PATH = path.join(__dirname, "captures", "wx.99cda.com_2026_10_09_01_01_44.har");
 let runtimeCredentials = null;
 const DEVICES = [
   { id: "building-13-1", name: "13号楼1号机", q: "0400000000022269", gid: "FFFF000102116079", operatorId: "100664", mode: "mini" },
@@ -59,7 +61,9 @@ function legacyRequestFromHar(harPath) {
 
 function loadLegacyRequest() {
   const args = parseArgs();
-  return legacyRequestFromHar(args.legacyHarPath || process.env.CHARGING_LEGACY_HAR_PATH);
+  const harPath = args.legacyHarPath || process.env.CHARGING_LEGACY_HAR_PATH ||
+    (fs.existsSync(DEFAULT_LEGACY_HAR_PATH) ? DEFAULT_LEGACY_HAR_PATH : null);
+  return legacyRequestFromHar(harPath);
 }
 
 function credentialsFromHar(harPath) {
@@ -102,7 +106,9 @@ function credentialsFromHar(harPath) {
 function loadCredentials() {
   if (runtimeCredentials) return runtimeCredentials;
   const args = parseArgs();
-  const fromHar = credentialsFromHar(args.harPath || process.env.CHARGING_HAR_PATH);
+  const harPath = args.harPath || process.env.CHARGING_HAR_PATH ||
+    (fs.existsSync(DEFAULT_HAR_PATH) ? DEFAULT_HAR_PATH : null);
+  const fromHar = credentialsFromHar(harPath);
   if (fromHar) return fromHar;
   const credentials = {
     authorization: process.env.CHARGING_AUTHORIZATION,
@@ -191,6 +197,13 @@ function getHttpText(url, headers, redirects = 0) {
 }
 
 async function getLegacyPage(url, headers = {}) {
+  if (process.env.NETLIFY) {
+    const result = await getHttpText(url, headers);
+    if (result.status < 200 || result.status >= 400) {
+      throw new Error(`旧版服务返回 HTTP ${result.status}`);
+    }
+    return result.body;
+  }
   // The legacy host is only reachable through the system proxy on this PC.
   // curl honors that proxy configuration, while Node's native http client does not.
   const command = process.platform === "win32" ? "curl.exe" : "curl";
@@ -265,16 +278,15 @@ async function queryLegacyDevice(device, credentials) {
 
 async function queryAllStatus() {
   const credentials = loadCredentials();
-  const devices = [];
-  for (const device of DEVICES) {
+  const devices = await Promise.all(DEVICES.map(async (device) => {
     try {
-      devices.push(device.mode === "legacy"
+      return device.mode === "legacy"
         ? await queryLegacyDevice(device, credentials)
-        : await queryMiniDevice(device, credentials));
+        : await queryMiniDevice(device, credentials);
     } catch (error) {
-      devices.push({ id: device.id, name: device.name, gid: device.gid, ok: false, message: error.code === "02" ? "微信凭证已失效" : error.message });
+      return { id: device.id, name: device.name, gid: device.gid, ok: false, message: error.code === "02" ? "微信凭证已失效" : error.message };
     }
-  }
+  }));
   const successful = devices.filter((device) => device.ok);
   return {
     queriedAt: new Date().toISOString(),
@@ -333,7 +345,7 @@ function readJson(req) {
   });
 }
 
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
   try {
     if (req.method === "GET" && (req.url === "/" || req.url === "/index.html")) {
       return serveFile(res, "index.html", "text/html; charset=utf-8");
@@ -365,8 +377,20 @@ const server = http.createServer(async (req, res) => {
       message: expired ? "微信查询凭证已失效，请重新抓取请求" : error.message,
     });
   }
-});
+}
 
-server.listen(PORT, HOST, () => {
-  console.log(`充电桩状态页：http://${HOST}:${PORT}`);
-});
+if (require.main === module) {
+  const server = http.createServer(handleRequest);
+  server.listen(PORT, HOST, () => {
+    console.log(`充电桩状态页：http://${HOST}:${PORT}`);
+  });
+}
+
+module.exports = {
+  DEVICES,
+  credentialsFromPayload,
+  generateScheme,
+  queryAllStatus,
+  queryMiniDevice,
+  setRuntimeCredentials(credentials) { runtimeCredentials = credentials; },
+};

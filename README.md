@@ -33,3 +33,7 @@ node server.js `
 - `PORT`（默认 `4173`）
 
 令牌失效后接口会显示需要重新抓取。生产部署应配置 HTTPS，并限制页面访问范围。
+
+## Netlify 部署
+
+仓库已包含 `netlify.toml` 和 Functions 适配。把 GitHub 仓库导入 Netlify 后无需填写构建命令，发布目录和函数目录会自动从配置读取。
