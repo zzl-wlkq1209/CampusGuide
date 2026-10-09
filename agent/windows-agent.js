@@ -23,6 +23,10 @@ const CAPTURE_FILE = path.resolve(
   process.env.CREDENTIAL_CAPTURE_FILE ||
     path.join(__dirname, "..", "runtime", "credential-response.json"),
 );
+const REQABLE_CAPTURE_DIR = path.resolve(
+  process.env.REQABLE_CAPTURE_DIR ||
+    path.join(process.env.APPDATA || "", "Reqable", "capture"),
+);
 const REQABLE_PATH = process.env.REQABLE_PATH || "";
 const OPEN_COMMAND = process.env.CHARGING_OPEN_COMMAND || "";
 const CLOSE_COMMAND = process.env.CHARGING_CLOSE_COMMAND || "";
@@ -72,7 +76,7 @@ function startReqable() {
 }
 
 async function stopReqable() {
-  await execFileAsync("taskkill.exe", ["/IM", "Reqable.exe", "/T"], {
+  await execFileAsync("taskkill.exe", ["/F", "/IM", "Reqable.exe", "/T"], {
     windowsHide: true,
   }).catch(() => {});
 }
@@ -80,27 +84,37 @@ async function stopReqable() {
 async function openChargingProgram() {
   if (OPEN_COMMAND) return runCommand(OPEN_COMMAND);
   const { scheme } = await api("open");
-  await execFileAsync(
-    "rundll32.exe",
-    ["url.dll,FileProtocolHandler", scheme],
-    { windowsHide: true },
-  );
+  await execFileAsync("rundll32.exe", ["url.dll,FileProtocolHandler", scheme], {
+    windowsHide: true,
+  });
 }
 
 async function closeChargingProgram() {
   if (CLOSE_COMMAND) return runCommand(CLOSE_COMMAND);
-  await execFileAsync("taskkill.exe", ["/IM", "WeChatAppEx.exe", "/T"], {
-    windowsHide: true,
-  }).catch(() => {});
+  await execFileAsync(
+    "taskkill.exe",
+    ["/F", "/FI", "WINDOWTITLE eq 车充安充电助手"],
+    { windowsHide: true },
+  ).catch(() => {});
 }
 
 async function waitForCapture(startedAt) {
   const deadline = Date.now() + CAPTURE_TIMEOUT_MS;
   while (Date.now() < deadline) {
+    const files = [CAPTURE_FILE];
     try {
-      const stat = fs.statSync(CAPTURE_FILE);
-      if (stat.mtimeMs >= startedAt) {
-        const text = fs.readFileSync(CAPTURE_FILE, "utf8");
+      files.push(
+        ...fs
+          .readdirSync(REQABLE_CAPTURE_DIR)
+          .filter((name) => name.endsWith("-res-raw-body.reqable"))
+          .map((name) => path.join(REQABLE_CAPTURE_DIR, name)),
+      );
+    } catch {}
+    for (const fileName of files) {
+      try {
+        const stat = fs.statSync(fileName);
+        if (stat.mtimeMs < startedAt || stat.size > 16_384) continue;
+        const text = fs.readFileSync(fileName, "utf8");
         const parsed = JSON.parse(text);
         if (
           parsed?.code === "00" &&
@@ -109,8 +123,8 @@ async function waitForCapture(startedAt) {
         ) {
           return text;
         }
-      }
-    } catch {}
+      } catch {}
+    }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   throw new Error("等待车充安授权响应超时");
@@ -122,6 +136,8 @@ async function refreshCredential(requestId) {
   startReqable();
   try {
     await new Promise((resolve) => setTimeout(resolve, 1800));
+    await closeChargingProgram();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await openChargingProgram();
     const text = await waitForCapture(startedAt);
     await api("credentials", { requestId, text });

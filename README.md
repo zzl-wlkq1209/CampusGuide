@@ -50,12 +50,12 @@ node server.js `
 
 1. 在 Supabase SQL Editor 执行 `supabase.sql`。
 2. 在 Netlify 配置 `.env.example` 中的四个服务端环境变量。
-3. 在 Reqable 中导入并启用 `agent/reqable_capture.py`，保持系统代理与自动抓包可用。
+3. 保持 Reqable 的系统代理与自动抓包可用。代理会直接读取 Reqable 捕获目录；脚本可作为备用。
 4. 复制 `agent/agent.env.example` 为 `agent/agent.env`，填写相同的代理密钥、Reqable 路径和捕获文件绝对路径。
 5. 执行 `npm run agent`，并把该命令配置为 Windows 登录后自动启动。
 
 代理默认从服务端获取 `weixin://` 链接打开车充安。完成上传和全设备查询后，它会结束
-`WeChatAppEx.exe` 和 `Reqable.exe`；微信主程序及其登录状态不受影响。若本机行为不同，可用
+标题为“车充安充电助手”的小程序窗口和 `Reqable.exe`；微信主程序及其登录状态不受影响。若本机行为不同，可用
 `CHARGING_OPEN_COMMAND` 和 `CHARGING_CLOSE_COMMAND` 覆盖默认动作。
 
 所有凭证在写入 Supabase 前均使用 AES-256-GCM 加密；Supabase 表不向 `anon` 或
