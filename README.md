@@ -20,6 +20,8 @@ node server.js `
 
 也可以在网页右上角点击“更新凭证”，直接粘贴 `userAuthorization.do` 的完整 JSON 响应。网页只提取 `authorization` 和 `openId`，并将它们保存在当前 Node.js 进程内存中；服务重启后会重新使用启动参数指定的 HAR。
 
+浏览器还会把这份短期响应保存在当前标签页的 `sessionStorage`，并随每次状态查询和充电页跳转提交给同源后端。这是为了兼容 Netlify Functions 的无状态运行方式；关闭标签页后该副本会自动清除。
+
 ## 服务器运行
 
 本仓库已包含用于个人部署的 HAR。也可以使用环境变量配置：
@@ -36,4 +38,6 @@ node server.js `
 
 ## Netlify 部署
 
-仓库已包含 `netlify.toml` 和 Functions 适配。把 GitHub 仓库导入 Netlify 后无需填写构建命令，发布目录和函数目录会自动从配置读取。
+仓库已包含 `netlify.toml` 和 Functions 适配。必须部署整个仓库，不能只上传 `public` 目录，否则 `/api/status`、`/api/credentials` 和 `/api/open` 不存在，充电查询会失败。把 GitHub 仓库导入 Netlify 后无需填写构建命令，发布目录和函数目录会自动从配置读取。
+
+部署完成后先访问 `/health`，应得到 `{"ok":true}`。如果只有页面能打开而 `/health` 返回 404，说明 Functions 或重定向规则没有随项目部署。

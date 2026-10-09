@@ -21,13 +21,26 @@ function response(statusCode, body) {
 
 exports.handler = async (event) => {
   try {
-    const route = event.path.replace(/^\/\.netlify\/functions\/api/, "");
+    const route = event.path.replace(
+      /^\/(?:\.netlify\/functions\/api|api)/,
+      "",
+    );
     if (event.httpMethod === "POST" && route === "/status") {
-      return response(200, { ok: true, data: await queryAllStatus() });
+      const payload = JSON.parse(event.body || "{}");
+      const credentials = payload.credentialText
+        ? credentialsFromPayload({ text: payload.credentialText })
+        : null;
+      return response(200, {
+        ok: true,
+        data: await queryAllStatus(credentials),
+      });
     }
     if (event.httpMethod === "POST" && route === "/credentials") {
       const candidate = credentialsFromPayload(JSON.parse(event.body || "{}"));
-      await queryMiniDevice(DEVICES.find((device) => device.mode === "mini"), candidate);
+      await queryMiniDevice(
+        DEVICES.find((device) => device.mode === "mini"),
+        candidate,
+      );
       setRuntimeCredentials(candidate);
       return response(200, { ok: true, message: "查询凭证已更新" });
     }
@@ -35,7 +48,13 @@ exports.handler = async (event) => {
       const payload = JSON.parse(event.body || "{}");
       const device = DEVICES.find((item) => item.id === payload.id);
       if (!device) return response(400, { ok: false, message: "未知设备" });
-      return response(200, { ok: true, scheme: await generateScheme(device) });
+      const credentials = payload.credentialText
+        ? credentialsFromPayload({ text: payload.credentialText })
+        : null;
+      return response(200, {
+        ok: true,
+        scheme: await generateScheme(device, credentials),
+      });
     }
     if (event.httpMethod === "GET" && route === "/health") {
       return response(200, { ok: true });

@@ -1,14 +1,955 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07141d"><meta name="description" content="北京理工大学校园充电、外卖柜、快递柜和餐饮快捷入口"><title>北理校园直达</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%2307141d'/%3E%3Cpath d='M15 19h34v27H15z' fill='%233fe08f'/%3E%3Cpath d='M23 13v12M41 13v12M23 34h18' stroke='%2307141d' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E"><style>
-:root{color-scheme:dark;--bg:#07141d;--surface:#0d202c;--surface2:#132b39;--line:#24414f;--text:#f5fafc;--muted:#91a8b5;--green:#42e394;--orange:#ffb761;--red:#ff8585}*{box-sizing:border-box}html{font-size:16px}body{margin:0;min-height:100vh;background:radial-gradient(circle at 85% -5%,rgba(77,201,237,.13),transparent 28rem),linear-gradient(180deg,#07141d,#091923 65%,#07141d);color:var(--text);font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}button,textarea{font:inherit}.shell{width:min(100% - 2rem,76rem);margin:auto;padding:1.1rem 0 5rem}.topbar,.panel-head,.card-head,.card-foot,.parse-result,.credential-actions{display:flex;align-items:center;justify-content:space-between;gap:1rem}.brand{display:flex;align-items:center;gap:.7rem;font-weight:850}.logo{display:grid;place-items:center;width:2.15rem;height:2.15rem;border-radius:.7rem;background:var(--green);color:#052116;font-weight:950}.subtitle,.panel-head p,.quick-link span,.identity p,.state-text,.credential-result{color:var(--muted)}.subtitle{font-size:.86rem}.intro{margin:2.2rem 0 1.1rem}.intro h1{margin:0;font-size:clamp(2rem,6vw,3.5rem);letter-spacing:-.045em;line-height:1}.intro p{margin:.7rem 0 0;color:var(--muted)}.tabs{position:sticky;top:.65rem;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin:1.3rem 0;padding:.4rem;border:1px solid var(--line);border-radius:1.15rem;background:rgba(7,20,29,.88);backdrop-filter:blur(18px)}.tab{min-height:3rem;border:0;border-radius:.8rem;background:transparent;color:var(--muted);cursor:pointer;font-weight:760}.tab.active{background:var(--surface2);color:var(--text);box-shadow:inset 0 0 0 1px #315666}.panel[hidden]{display:none}.panel-head{align-items:flex-end;margin:1.5rem 0 1rem}.panel-head h2{margin:0;font-size:1.35rem}.panel-head p{margin:.35rem 0 0;font-size:.9rem}.button{min-height:2.75rem;padding:0 1rem;border:0;border-radius:.8rem;cursor:pointer;font-weight:780}.button:disabled{opacity:.55;cursor:wait}.primary{background:var(--green);color:#052116}.secondary{background:#183445;color:var(--text);border:1px solid #315565}.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}.link-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.quick-link{display:flex;align-items:center;gap:1rem;min-height:6.5rem;padding:1rem;text-decoration:none;color:var(--text);border:1px solid var(--line);border-radius:1.1rem;background:rgba(13,32,44,.92);transition:.15s}.quick-link:hover{transform:translateY(-2px);border-color:#3d687c}.quick-icon{display:grid;place-items:center;flex:0 0 auto;width:3rem;height:3rem;border-radius:.9rem;background:#183849;font-size:1.25rem}.quick-link strong,.quick-link span{display:block}.quick-link span{margin-top:.25rem;font-size:.84rem}.parcel-tool,.credential-panel{padding:1.1rem;border:1px solid #315565;border-radius:1.15rem;background:var(--surface);margin-bottom:1rem}.parcel-tool label{display:block;margin-bottom:.65rem;font-weight:800}.parcel-tool textarea,.credential-panel textarea{width:100%;min-height:7rem;padding:.85rem;border:1px solid var(--line);border-radius:.8rem;background:#071923;color:var(--text);resize:vertical;line-height:1.55}.parse-result{margin-top:.8rem;min-height:3rem}.parse-copy{color:var(--muted);font-size:.9rem}.parse-copy strong{color:var(--text)}.parse-actions{display:flex;gap:.55rem}.cabinet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}.cabinet{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;border:1px solid var(--line);border-radius:.9rem;background:var(--surface);color:var(--text);text-decoration:none;font-weight:760}.cabinet span{color:var(--muted);font-size:.8rem}.credential-panel h3{margin:0 0 .35rem}.credential-panel p{margin:0 0 .8rem;color:var(--muted);font-size:.84rem}.credential-panel textarea{font:12px/1.55 ui-monospace,Consolas,monospace}.credential-actions{margin-top:.7rem}.credential-result{margin-right:auto;font-size:.82rem}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1rem}.metric{padding:1rem;border:1px solid var(--line);border-radius:1rem;background:var(--surface)}.metric span{display:block;color:var(--muted);font-size:.82rem}.metric strong{display:block;margin-top:.25rem;font-size:1.8rem}.metric:first-child strong{color:var(--green)}.device-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}.card{padding:1rem;border:1px solid var(--line);border-radius:1.1rem;background:rgba(13,32,44,.94)}.card.error{border-color:rgba(255,133,133,.45)}.card-head{align-items:flex-start}.order{display:grid;place-items:center;width:1.9rem;height:1.9rem;flex:0 0 auto;border-radius:.6rem;background:var(--surface2);color:var(--muted);font-weight:800}.identity{flex:1;min-width:0}.identity h3{margin:0;font-size:1.02rem}.identity p{margin:.25rem 0 0;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.count{text-align:right}.count strong{display:block;color:var(--green);font-size:1.55rem;line-height:1}.count span{color:var(--muted);font-size:.73rem}.ports{display:grid;grid-template-columns:repeat(10,1fr);gap:.3rem;margin:.9rem 0}.port{aspect-ratio:1;display:grid;place-items:center;border:1px solid #294857;border-radius:.45rem;background:#172f3d;color:#aec0c8;font-size:.72rem;font-weight:800}.port.available{background:#0b3c2a;border-color:#269468;color:var(--green)}.port.fault{color:#ffc0c0;border-color:#934b55}.card-foot{padding-top:.75rem;border-top:1px solid var(--line)}.state-text{font-size:.8rem}.error-message{margin:1rem 0;color:#ffc0c0}.empty{grid-column:1/-1;min-height:14rem;display:grid;place-items:center;text-align:center;border:1px dashed var(--line);border-radius:1rem;color:var(--muted)}.notice{margin:.9rem 0;padding:.8rem 1rem;border:1px solid rgba(255,183,97,.35);border-radius:.8rem;background:rgba(255,183,97,.08);color:#ffd4a4}.footer{margin-top:2rem;color:var(--muted);font-size:.78rem;text-align:center}.spin{display:inline-block;width:.85rem;height:.85rem;border:2px solid rgba(5,33,22,.35);border-top-color:#052116;border-radius:50%;animation:spin .7s linear infinite;margin-right:.35rem;vertical-align:-.08rem}@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:760px){.shell{width:min(100% - 1rem,76rem);padding-top:.7rem}.subtitle{display:none}.intro{margin:1.5rem .2rem 1rem}.tabs{top:.35rem}.tab{font-size:.82rem}.panel-head{align-items:stretch;flex-direction:column}.panel-head .button{margin-top:.35rem}.link-grid,.device-grid{grid-template-columns:1fr}.cabinet-grid{grid-template-columns:repeat(2,1fr)}.parse-result{align-items:stretch;flex-direction:column}.parse-actions .button{flex:1}}@media(max-width:420px){.tab{font-size:.76rem}.summary{gap:.4rem}.metric{padding:.75rem}.metric strong{font-size:1.45rem}.ports{grid-template-columns:repeat(5,1fr)}.credential-actions{flex-wrap:wrap}.credential-result{width:100%}}
-</style></head><body><main class="shell"><header class="topbar"><div class="brand"><span class="logo">BIT</span><span>北理校园直达</span></div><span class="subtitle">常用入口，一页直达</span></header><section class="intro"><h1>校园生活，少绕一步</h1><p>充电、取件、外卖柜和餐饮入口集中在这里。</p></section><nav class="tabs" aria-label="功能板块"><button class="tab" data-panel="takeout">▦ 外卖</button><button class="tab" data-panel="parcel">▣ 快递</button><button class="tab active" data-panel="charging">ϟ 充电</button><button class="tab" data-panel="food">◉ 餐饮</button></nav>
-<section class="panel" id="panel-takeout" hidden><div class="panel-head"><div><h2>外卖柜</h2><p>按位置打开美团智能取餐柜。</p></div></div><div class="link-grid"><a class="quick-link" href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTM=&category=UElDSw=="><span class="quick-icon">01</span><div><strong>远志楼北侧</strong><span>打开外卖柜</span></div></a><a class="quick-link" href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgxODAwMzc=&category=UElDSw=="><span class="quick-icon">02</span><div><strong>国防科技园</strong><span>打开外卖柜</span></div></a><a class="quick-link" href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTA=&category=UElDSw=="><span class="quick-icon">03</span><div><strong>硕博公寓西</strong><span>打开外卖柜</span></div></a><a class="quick-link" href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAxOTU=&category=UElDSw=="><span class="quick-icon">04</span><div><strong>信息科学实验楼南</strong><span>打开外卖柜</span></div></a></div></section>
-<section class="panel" id="panel-parcel" hidden><div class="panel-head"><div><h2>快递驿站</h2><p>粘贴短信，自动识别取件码和柜号。</p></div></div><div class="parcel-tool"><label for="parcel-message">取件短信</label><textarea id="parcel-message" placeholder="例如：【近邻宝】凭「1481-3374」到北理工快递驿站4号柜A18取件。"></textarea><div class="parse-result"><div class="parse-copy" id="parcel-result">等待粘贴短信</div><div class="parse-actions"><button class="button ghost" id="copy-code" disabled>复制取件码</button><button class="button primary" id="open-cabinet" disabled>复制并打开柜机</button></div></div></div><div class="cabinet-grid" id="cabinet-grid"></div></section>
-<section class="panel" id="panel-charging"><div class="panel-head"><div><h2>充电桩状态</h2><p id="query-meta">正在查询 11 台设备。</p></div><div><button class="button secondary" id="credential-toggle">更新凭证</button> <button class="button primary" id="query-button">重新查询</button></div></div><section class="credential-panel" id="credential-panel" hidden><h3>粘贴小程序授权响应</h3><p>可直接粘贴 Reqable“复制响应”得到的全部内容，包括 HTTP 状态行、响应头和末尾 JSON。</p><textarea id="credential-text" autocomplete="off" spellcheck="false" placeholder="HTTP/2 200&#10;...&#10;&#10;{&quot;msg&quot;:&quot;获取成功&quot;,&quot;code&quot;:&quot;00&quot;,&quot;data&quot;:{&quot;authorization&quot;:&quot;...&quot;,&quot;openId&quot;:&quot;...&quot;}}"></textarea><div class="credential-actions"><span class="credential-result" id="credential-result"></span><button class="button ghost" id="credential-cancel">取消</button><button class="button primary" id="credential-save">更新并查询</button></div></section><section class="summary" id="summary" hidden><div class="metric"><span>空闲端口</span><strong id="available-total">0</strong></div><div class="metric"><span>已查询设备</span><strong id="device-total">0/11</strong></div><div class="metric"><span>端口总数</span><strong id="port-total">0</strong></div></section><section class="device-grid" id="device-grid" aria-live="polite"><div class="empty">正在读取充电桩状态…</div></section><div class="notice" id="notice" hidden>部分新版设备的微信凭证已失效，请粘贴最新授权响应。</div></section>
-<section class="panel" id="panel-food" hidden><div class="panel-head"><div><h2>校园餐饮</h2><p>直接打开商家点单页面。</p></div></div><div class="link-grid"><a class="quick-link" href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"><span class="quick-icon">🍔</span><div><strong>肯德旺汉堡炸鸡</strong><span>打开点单页</span></div></a><a class="quick-link" href="https://m.sqbe.cn/2d?c=23100902312159449143"><span class="quick-icon">🍜</span><div><strong>好这口重庆小面</strong><span>打开点单页</span></div></a></div></section><p class="footer">状态与入口仅供校内使用，充电位占用情况可能随时变化。</p></main><script>
-const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),esc=v=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);const tabs=$$(".tab"),panels=$$(".panel");tabs.forEach(t=>t.addEventListener("click",()=>{tabs.forEach(x=>x.classList.toggle("active",x===t));panels.forEach(p=>p.hidden=p.id!==`panel-${t.dataset.panel}`)}));
-const cabinetUrls=["https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120796&wx_type=logis","https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120797&wx_type=logis","https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120798&wx_type=logis","https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120795&wx_type=logis","https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120799&wx_type=logis","https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120808&wx_type=logis"];$("#cabinet-grid").innerHTML=cabinetUrls.map((u,i)=>`<a class="cabinet" href="${u}">${i+1}号柜 <span>直接打开</span></a>`).join("");let parsedCode="",parsedCabinet=0;function parseParcel(){const t=$("#parcel-message").value,c=t.match(/(?:^|\D)(\d{4})[-\s]?([0-9]{4})(?!\d)/),b=t.match(/([1-6])\s*号柜/);parsedCode=c?c[1]+c[2]:"";parsedCabinet=b?Number(b[1]):0;const r=$("#parcel-result");if(parsedCode&&parsedCabinet)r.innerHTML=`取件码 <strong>${parsedCode}</strong> · ${parsedCabinet}号柜`;else r.textContent=parsedCode?`已识别取件码 ${parsedCode}，未识别柜号`:parsedCabinet?`已识别 ${parsedCabinet}号柜，未识别8位取件码`:"未识别到取件码和柜号";$("#copy-code").disabled=!parsedCode;$("#open-cabinet").disabled=!(parsedCode&&parsedCabinet)}$("#parcel-message").addEventListener("input",parseParcel);async function copyCode(){if(!parsedCode)return;try{await navigator.clipboard.writeText(parsedCode);$("#parcel-result").innerHTML=`取件码 <strong>${parsedCode}</strong> 已复制 · ${parsedCabinet||"?"}号柜`}catch{$("#parcel-result").textContent=`请手动复制：${parsedCode}`}}$("#copy-code").addEventListener("click",copyCode);$("#open-cabinet").addEventListener("click",async()=>{await copyCode();if(parsedCabinet)location.href=cabinetUrls[parsedCabinet-1]});
-const queryButton=$("#query-button"),grid=$("#device-grid"),summary=$("#summary"),notice=$("#notice"),queryMeta=$("#query-meta"),credentialPanel=$("#credential-panel"),credentialText=$("#credential-text"),credentialResult=$("#credential-result"),credentialSave=$("#credential-save");const labels={I:"空闲",C:"充电中",O:"占用",D:"未启用",E:"启动",P:"启动中",F:"通讯故障",B:"设备故障"};const time=i=>new Intl.DateTimeFormat("zh-CN",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(i));async function post(url,body){try{const r=await fetch(url,{method:"POST",headers:{"content-type":"application/json"},body:body?JSON.stringify(body):undefined}),j=await r.json();if(!r.ok||!j.ok)throw new Error(j.message||"请求失败");return j}catch(e){if(e instanceof TypeError&&/fetch/i.test(e.message))throw new Error("无法连接本地查询服务，请刷新页面后重试");throw e}}
-function card(d,i){if(!d.ok)return `<article class="card error"><div class="card-head"><span class="order">${i+1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p><div class="card-foot"><span class="state-text">更新凭证后可重试</span></div></article>`;return `<article class="card"><div class="card-head"><span class="order">${i+1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count"><strong>${d.summary.available}</strong><span>空闲 / ${d.summary.total}</span></div></div><div class="ports">${d.channels.map(c=>`<span class="port ${c.status==="I"?"available":["F","B","D"].includes(c.status)?"fault":""}" title="${esc(labels[c.status]||"未知")}">${c.number}</span>`).join("")}</div><div class="card-foot"><span class="state-text">${d.summary.available?`有 ${d.summary.available} 个空位`:"暂时没有空位"}</span><button class="button secondary open-button" data-id="${esc(d.id)}">打开充电页</button></div></article>`}function bindOpen(){$$(".open-button").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{location.href=(await post("/api/open",{id:b.dataset.id})).scheme}catch(e){alert(e.message);b.disabled=false}}))}
-async function queryAll(){queryButton.disabled=true;queryButton.innerHTML='<span class="spin"></span>查询中';notice.hidden=true;try{const{data}=await post("/api/status");grid.innerHTML=data.devices.map(card).join("");$("#available-total").textContent=data.summary.available;$("#device-total").textContent=`${data.summary.successful}/${data.summary.devices}`;$("#port-total").textContent=data.summary.total;summary.hidden=false;queryMeta.textContent=`${time(data.queriedAt)} 更新 · 共 ${data.summary.devices} 台`;const expired=data.devices.some(d=>!d.ok&&d.message.includes("凭证"));notice.hidden=!expired;if(expired){credentialPanel.hidden=false;credentialResult.textContent="凭证已失效，请粘贴最新响应";credentialText.focus()}bindOpen()}catch(e){grid.innerHTML=`<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`}finally{queryButton.disabled=false;queryButton.textContent="重新查询"}}queryButton.addEventListener("click",queryAll);$("#credential-toggle").addEventListener("click",()=>{credentialPanel.hidden=!credentialPanel.hidden;if(!credentialPanel.hidden)credentialText.focus()});$("#credential-cancel").addEventListener("click",()=>{credentialPanel.hidden=true;credentialText.value="";credentialResult.textContent=""});credentialSave.addEventListener("click",async()=>{credentialSave.disabled=true;credentialResult.textContent="正在验证凭证…";try{const r=await post("/api/credentials",{text:credentialText.value});credentialResult.textContent=r.message;credentialText.value="";credentialPanel.hidden=true;await queryAll()}catch(e){credentialResult.textContent=e.message}finally{credentialSave.disabled=false}});queryAll();
-</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#07141d" />
+    <meta
+      name="description"
+      content="北京理工大学校园充电、外卖柜、快递柜和餐饮快捷入口"
+    />
+    <title>北理校园直达</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%2307141d'/%3E%3Cpath d='M15 19h34v27H15z' fill='%233fe08f'/%3E%3Cpath d='M23 13v12M41 13v12M23 34h18' stroke='%2307141d' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #07141d;
+        --surface: #0d202c;
+        --surface2: #132b39;
+        --line: #24414f;
+        --text: #f5fafc;
+        --muted: #91a8b5;
+        --green: #42e394;
+        --orange: #ffb761;
+        --red: #ff8585;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at 85% -5%,
+            rgba(77, 201, 237, 0.13),
+            transparent 28rem
+          ),
+          linear-gradient(180deg, #07141d, #091923 65%, #07141d);
+        color: var(--text);
+        font-family:
+          Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      }
+      button,
+      textarea {
+        font: inherit;
+      }
+      .shell {
+        width: min(100% - 2rem, 76rem);
+        margin: auto;
+        padding: 1.1rem 0 5rem;
+      }
+      .topbar,
+      .panel-head,
+      .card-head,
+      .card-foot,
+      .parse-result,
+      .credential-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-weight: 850;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        width: 2.15rem;
+        height: 2.15rem;
+        border-radius: 0.7rem;
+        background: var(--green);
+        color: #052116;
+        font-weight: 950;
+      }
+      .subtitle,
+      .panel-head p,
+      .quick-link span,
+      .identity p,
+      .state-text,
+      .credential-result {
+        color: var(--muted);
+      }
+      .subtitle {
+        font-size: 0.86rem;
+      }
+      .intro {
+        margin: 2.2rem 0 1.1rem;
+      }
+      .intro h1 {
+        margin: 0;
+        font-size: clamp(2rem, 6vw, 3.5rem);
+        letter-spacing: -0.045em;
+        line-height: 1;
+      }
+      .intro p {
+        margin: 0.7rem 0 0;
+        color: var(--muted);
+      }
+      .tabs {
+        position: sticky;
+        top: 0.65rem;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.4rem;
+        margin: 1.3rem 0;
+        padding: 0.4rem;
+        border: 1px solid var(--line);
+        border-radius: 1.15rem;
+        background: rgba(7, 20, 29, 0.88);
+        backdrop-filter: blur(18px);
+      }
+      .tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 3rem;
+        min-height: 3rem;
+        line-height: 1;
+        border: 0;
+        border-radius: 0.8rem;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        font-weight: 760;
+      }
+      .tab.active {
+        background: var(--surface2);
+        color: var(--text);
+        box-shadow: inset 0 0 0 1px #315666;
+      }
+      .panel[hidden] {
+        display: none;
+      }
+      .panel-head {
+        align-items: flex-end;
+        margin: 1.5rem 0 1rem;
+      }
+      .panel-head h2 {
+        margin: 0;
+        font-size: 1.35rem;
+      }
+      .panel-head p {
+        margin: 0.35rem 0 0;
+        font-size: 0.9rem;
+      }
+      .button {
+        min-height: 2.75rem;
+        padding: 0 1rem;
+        border: 0;
+        border-radius: 0.8rem;
+        cursor: pointer;
+        font-weight: 780;
+      }
+      .button:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+      .primary {
+        background: var(--green);
+        color: #052116;
+      }
+      .secondary {
+        background: #183445;
+        color: var(--text);
+        border: 1px solid #315565;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--line);
+      }
+      .link-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+      }
+      .quick-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-height: 6.5rem;
+        padding: 1rem;
+        text-decoration: none;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 1.1rem;
+        background: rgba(13, 32, 44, 0.92);
+        transition: 0.15s;
+      }
+      .quick-link:hover {
+        transform: translateY(-2px);
+        border-color: #3d687c;
+      }
+      .quick-link .quick-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 3rem;
+        width: 3rem;
+        height: 3rem;
+        line-height: 1;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        border-radius: 0.9rem;
+        background: #183849;
+        font-size: 1.25rem;
+      }
+      .quick-link strong,
+      .quick-link span {
+        display: block;
+      }
+      .takeout-card {
+        display: grid;
+        grid-template-columns: 1fr 5.5rem;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: 1.1rem;
+        background: rgba(13, 32, 44, 0.92);
+      }
+      .takeout-card .quick-link {
+        min-height: 5rem;
+        padding: 0.35rem;
+        border: 0;
+        background: transparent;
+      }
+      .takeout-card img {
+        display: block;
+        width: 5.5rem;
+        height: 5.5rem;
+        padding: 0.3rem;
+        border-radius: 0.7rem;
+        background: white;
+      }
+      .charge-note {
+        margin: 1rem 0 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-align: center;
+      }
+      .quick-link span {
+        margin-top: 0.25rem;
+        font-size: 0.84rem;
+      }
+      .parcel-tool,
+      .credential-panel {
+        padding: 1.1rem;
+        border: 1px solid #315565;
+        border-radius: 1.15rem;
+        background: var(--surface);
+        margin-bottom: 1rem;
+      }
+      .parcel-tool label {
+        display: block;
+        margin-bottom: 0.65rem;
+        font-weight: 800;
+      }
+      .parcel-tool textarea,
+      .credential-panel textarea {
+        width: 100%;
+        min-height: 7rem;
+        padding: 0.85rem;
+        border: 1px solid var(--line);
+        border-radius: 0.8rem;
+        background: #071923;
+        color: var(--text);
+        resize: vertical;
+        line-height: 1.55;
+      }
+      .parse-result {
+        margin-top: 0.8rem;
+        min-height: 3rem;
+      }
+      .parse-copy {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .parse-copy strong {
+        color: var(--text);
+      }
+      .parse-actions {
+        display: flex;
+        gap: 0.55rem;
+      }
+      .cabinet-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.7rem;
+      }
+      .cabinet {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.9rem 1rem;
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        background: var(--surface);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 760;
+      }
+      .cabinet span {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .credential-panel h3 {
+        margin: 0 0 0.35rem;
+      }
+      .credential-panel p {
+        margin: 0 0 0.8rem;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+      .credential-panel textarea {
+        font:
+          12px/1.55 ui-monospace,
+          Consolas,
+          monospace;
+      }
+      .credential-actions {
+        margin-top: 0.7rem;
+      }
+      .credential-result {
+        margin-right: auto;
+        font-size: 0.82rem;
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.7rem;
+        margin-bottom: 1rem;
+      }
+      .metric {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        background: var(--surface);
+      }
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+      .metric strong {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 1.8rem;
+      }
+      .metric:first-child strong {
+        color: var(--green);
+      }
+      .device-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+      .card {
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 1.1rem;
+        background: rgba(13, 32, 44, 0.94);
+      }
+      .card.error {
+        border-color: rgba(255, 133, 133, 0.45);
+      }
+      .card-head {
+        align-items: flex-start;
+      }
+      .order {
+        display: grid;
+        place-items: center;
+        width: 1.9rem;
+        height: 1.9rem;
+        flex: 0 0 auto;
+        border-radius: 0.6rem;
+        background: var(--surface2);
+        color: var(--muted);
+        font-weight: 800;
+      }
+      .identity {
+        flex: 1;
+        min-width: 0;
+      }
+      .identity h3 {
+        margin: 0;
+        font-size: 1.02rem;
+      }
+      .identity p {
+        margin: 0.25rem 0 0;
+        font-size: 0.78rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .count {
+        text-align: right;
+      }
+      .count strong {
+        display: block;
+        color: var(--green);
+        font-size: 1.55rem;
+        line-height: 1;
+      }
+      .count span {
+        color: var(--muted);
+        font-size: 0.73rem;
+      }
+      .ports {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 0.3rem;
+        margin: 0.9rem 0;
+      }
+      .port {
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        border: 1px solid #294857;
+        border-radius: 0.45rem;
+        background: #172f3d;
+        color: #aec0c8;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .port.available {
+        background: #0b3c2a;
+        border-color: #269468;
+        color: var(--green);
+      }
+      .port.fault {
+        color: #ffc0c0;
+        border-color: #934b55;
+      }
+      .card-foot {
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--line);
+      }
+      .state-text {
+        font-size: 0.8rem;
+      }
+      .error-message {
+        margin: 1rem 0;
+        color: #ffc0c0;
+      }
+      .empty {
+        grid-column: 1/-1;
+        min-height: 14rem;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        border: 1px dashed var(--line);
+        border-radius: 1rem;
+        color: var(--muted);
+      }
+      .notice {
+        margin: 0.9rem 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid rgba(255, 183, 97, 0.35);
+        border-radius: 0.8rem;
+        background: rgba(255, 183, 97, 0.08);
+        color: #ffd4a4;
+      }
+      .footer {
+        margin-top: 2rem;
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-align: center;
+      }
+      .spin {
+        display: inline-block;
+        width: 0.85rem;
+        height: 0.85rem;
+        border: 2px solid rgba(5, 33, 22, 0.35);
+        border-top-color: #052116;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        margin-right: 0.35rem;
+        vertical-align: -0.08rem;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (max-width: 760px) {
+        .shell {
+          width: min(100% - 1rem, 76rem);
+          padding-top: 0.7rem;
+        }
+        .subtitle {
+          display: none;
+        }
+        .intro {
+          margin: 1.5rem 0.2rem 1rem;
+        }
+        .tabs {
+          top: 0.35rem;
+        }
+        .tab {
+          font-size: 0.82rem;
+        }
+        .panel-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .panel-head .button {
+          margin-top: 0.35rem;
+        }
+        .link-grid,
+        .device-grid {
+          grid-template-columns: 1fr;
+        }
+        .cabinet-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .parse-result {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .parse-actions .button {
+          flex: 1;
+        }
+      }
+      @media (max-width: 420px) {
+        .tab {
+          font-size: 0.76rem;
+        }
+        .summary {
+          gap: 0.4rem;
+        }
+        .metric {
+          padding: 0.75rem;
+        }
+        .metric strong {
+          font-size: 1.45rem;
+        }
+        .ports {
+          grid-template-columns: repeat(5, 1fr);
+        }
+        .credential-actions {
+          flex-wrap: wrap;
+        }
+        .credential-result {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="logo">BIT</span><span>北理校园直达</span>
+        </div>
+        <span class="subtitle">常用入口，一页直达</span>
+      </header>
+      <section class="intro">
+        <h1>校园生活，少绕一步</h1>
+        <p>充电、取件、外卖柜和餐饮入口集中在这里。</p>
+      </section>
+      <nav class="tabs" aria-label="功能板块">
+        <button class="tab" data-panel="takeout">▦ 外卖</button
+        ><button class="tab" data-panel="parcel">▣ 快递</button
+        ><button class="tab active" data-panel="charging">ϟ 充电</button
+        ><button class="tab" data-panel="food">◉ 餐饮</button>
+      </nav>
+      <section class="panel" id="panel-takeout" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>外卖柜</h2>
+            <p>按位置打开美团智能取餐柜。</p>
+          </div>
+        </div>
+        <div class="link-grid">
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTM=&category=UElDSw=="
+              ><span class="quick-icon">01</span>
+              <div><strong>远志楼北侧</strong><span>尝试直接打开</span></div></a
+            ><img src="/qrcodes/takeout-1.png" alt="远志楼北侧外卖柜二维码" />
+          </article>
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgxODAwMzc=&category=UElDSw=="
+              ><span class="quick-icon">02</span>
+              <div><strong>国防科技园</strong><span>尝试直接打开</span></div></a
+            ><img src="/qrcodes/takeout-2.png" alt="国防科技园外卖柜二维码" />
+          </article>
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTA=&category=UElDSw=="
+              ><span class="quick-icon">03</span>
+              <div><strong>硕博公寓西</strong><span>尝试直接打开</span></div></a
+            ><img src="/qrcodes/takeout-3.png" alt="硕博公寓西外卖柜二维码" />
+          </article>
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAxOTU=&category=UElDSw=="
+              ><span class="quick-icon">04</span>
+              <div>
+                <strong>信息科学实验楼南</strong><span>尝试直接打开</span>
+              </div></a
+            ><img
+              src="/qrcodes/takeout-4.png"
+              alt="信息科学实验楼南外卖柜二维码"
+            />
+          </article>
+        </div>
+        <p class="charge-note">
+          美团原始链接当前会返回 404；若无法直达，请在微信中长按右侧二维码识别。
+        </p>
+      </section>
+      <section class="panel" id="panel-parcel" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>快递驿站</h2>
+            <p>粘贴短信，自动识别取件码和柜号。</p>
+          </div>
+        </div>
+        <div class="parcel-tool">
+          <label for="parcel-message">取件短信</label
+          ><textarea
+            id="parcel-message"
+            placeholder="例如：【近邻宝】凭「1481-3374」到北理工快递驿站4号柜A18取件。"
+          ></textarea>
+          <div class="parse-result">
+            <div class="parse-copy" id="parcel-result">等待粘贴短信</div>
+            <div class="parse-actions">
+              <button class="button ghost" id="copy-code" disabled>
+                复制取件码</button
+              ><button class="button primary" id="open-cabinet" disabled>
+                复制并打开柜机
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cabinet-grid" id="cabinet-grid"></div>
+      </section>
+      <section class="panel" id="panel-charging">
+        <div class="panel-head">
+          <div>
+            <h2>充电桩状态</h2>
+            <p id="query-meta">正在查询 11 台设备。</p>
+          </div>
+          <div>
+            <button class="button secondary" id="credential-toggle">
+              更新凭证
+            </button>
+            <button class="button primary" id="query-button">重新查询</button>
+          </div>
+        </div>
+        <section class="credential-panel" id="credential-panel" hidden>
+          <h3>粘贴小程序授权响应</h3>
+          <p>
+            可直接粘贴 Reqable“复制响应”得到的全部内容，包括 HTTP
+            状态行、响应头和末尾 JSON。
+          </p>
+          <textarea
+            id="credential-text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder='HTTP/2 200&#10;...&#10;&#10;{"msg":"获取成功","code":"00","data":{"authorization":"...","openId":"..."}}'
+          ></textarea>
+          <div class="credential-actions">
+            <span class="credential-result" id="credential-result"></span
+            ><button class="button ghost" id="credential-cancel">取消</button
+            ><button class="button primary" id="credential-save">
+              更新并查询
+            </button>
+          </div>
+        </section>
+        <section class="summary" id="summary" hidden>
+          <div class="metric">
+            <span>空闲端口</span><strong id="available-total">0</strong>
+          </div>
+          <div class="metric">
+            <span>已查询设备</span><strong id="device-total">0/11</strong>
+          </div>
+          <div class="metric">
+            <span>端口总数</span><strong id="port-total">0</strong>
+          </div>
+        </section>
+        <section class="device-grid" id="device-grid" aria-live="polite">
+          <div class="empty">正在读取充电桩状态…</div>
+        </section>
+        <div class="notice" id="notice" hidden>
+          部分新版设备的微信凭证已失效，请粘贴最新授权响应。
+        </div>
+        <p class="charge-note">
+          充电位状态仅供出发前参考，现场占用情况可能随时变化。
+        </p>
+      </section>
+      <section class="panel" id="panel-food" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>校园餐饮</h2>
+            <p>直接打开商家点单页面。</p>
+          </div>
+        </div>
+        <div class="link-grid">
+          <a
+            class="quick-link"
+            target="_blank"
+            rel="noopener"
+            href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"
+            ><span class="quick-icon">🍔</span>
+            <div><strong>肯德旺汉堡炸鸡</strong><span>打开点单页</span></div></a
+          ><a
+            class="quick-link"
+            target="_blank"
+            rel="noopener"
+            href="https://m.sqbe.cn/2d?c=23100902312159449143"
+            ><span class="quick-icon">🍜</span>
+            <div><strong>好这口重庆小面</strong><span>打开点单页</span></div></a
+          >
+        </div>
+      </section>
+      <p class="footer">北理校园常用服务快捷入口</p>
+    </main>
+    <script>
+      const $ = (s) => document.querySelector(s),
+        $$ = (s) => document.querySelectorAll(s),
+        esc = (v) =>
+          String(v).replace(
+            /[&<>'"]/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "'": "&#39;",
+                '"': "&quot;",
+              })[c],
+          );
+      const tabs = $$(".tab"),
+        panels = $$(".panel");
+      tabs.forEach((t) =>
+        t.addEventListener("click", () => {
+          tabs.forEach((x) => x.classList.toggle("active", x === t));
+          panels.forEach(
+            (p) => (p.hidden = p.id !== `panel-${t.dataset.panel}`),
+          );
+        }),
+      );
+      const cabinetUrls = [
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120796&wx_type=logis",
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120797&wx_type=logis",
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120798&wx_type=logis",
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120795&wx_type=logis",
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120799&wx_type=logis",
+        "https://wechat.zkfc.cn/PickUpByQrcode?cabinet_code=20120808&wx_type=logis",
+      ];
+      $("#cabinet-grid").innerHTML = cabinetUrls
+        .map(
+          (u, i) =>
+            `<a class="cabinet" href="${u}">${i + 1}号柜 <span>直接打开</span></a>`,
+        )
+        .join("");
+      let parsedCode = "",
+        parsedCabinet = 0;
+      function parseParcel() {
+        const t = $("#parcel-message").value,
+          c = t.match(/(?:^|\D)(\d{4})[-\s]?([0-9]{4})(?!\d)/),
+          b = t.match(/([1-6])\s*号柜/);
+        parsedCode = c ? c[1] + c[2] : "";
+        parsedCabinet = b ? Number(b[1]) : 0;
+        const r = $("#parcel-result");
+        if (parsedCode && parsedCabinet)
+          r.innerHTML = `取件码 <strong>${parsedCode}</strong> · ${parsedCabinet}号柜`;
+        else
+          r.textContent = parsedCode
+            ? `已识别取件码 ${parsedCode}，未识别柜号`
+            : parsedCabinet
+              ? `已识别 ${parsedCabinet}号柜，未识别8位取件码`
+              : "未识别到取件码和柜号";
+        $("#copy-code").disabled = !parsedCode;
+        $("#open-cabinet").disabled = !(parsedCode && parsedCabinet);
+      }
+      $("#parcel-message").addEventListener("input", parseParcel);
+      async function copyCode() {
+        if (!parsedCode) return;
+        try {
+          await navigator.clipboard.writeText(parsedCode);
+          $("#parcel-result").innerHTML =
+            `取件码 <strong>${parsedCode}</strong> 已复制 · ${parsedCabinet || "?"}号柜`;
+        } catch {
+          $("#parcel-result").textContent = `请手动复制：${parsedCode}`;
+        }
+      }
+      $("#copy-code").addEventListener("click", copyCode);
+      $("#open-cabinet").addEventListener("click", async () => {
+        await copyCode();
+        if (parsedCabinet) location.href = cabinetUrls[parsedCabinet - 1];
+      });
+      const queryButton = $("#query-button"),
+        grid = $("#device-grid"),
+        summary = $("#summary"),
+        notice = $("#notice"),
+        queryMeta = $("#query-meta"),
+        credentialPanel = $("#credential-panel"),
+        credentialText = $("#credential-text"),
+        credentialResult = $("#credential-result"),
+        credentialSave = $("#credential-save");
+      const credentialStorageKey = "bit-charging-credential-response";
+      const storedCredential = () =>
+        sessionStorage.getItem(credentialStorageKey) || "";
+      const labels = {
+        I: "空闲",
+        C: "充电中",
+        O: "占用",
+        D: "未启用",
+        E: "启动",
+        P: "启动中",
+        F: "通讯故障",
+        B: "设备故障",
+      };
+      const time = (i) =>
+        new Intl.DateTimeFormat("zh-CN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        }).format(new Date(i));
+      async function post(url, body) {
+        try {
+          const r = await fetch(url, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: body ? JSON.stringify(body) : undefined,
+            }),
+            j = await r.json();
+          if (!r.ok || !j.ok) throw new Error(j.message || "请求失败");
+          return j;
+        } catch (e) {
+          if (e instanceof TypeError && /fetch/i.test(e.message))
+            throw new Error("无法连接本地查询服务，请刷新页面后重试");
+          throw e;
+        }
+      }
+      function card(d, i) {
+        if (!d.ok)
+          return `<article class="card error"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p><div class="card-foot"><span class="state-text">更新凭证后可重试</span></div></article>`;
+        return `<article class="card"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count"><strong>${d.summary.available}</strong><span>空闲 / ${d.summary.total}</span></div></div><div class="ports">${d.channels.map((c) => `<span class="port ${c.status === "I" ? "available" : ["F", "B", "D"].includes(c.status) ? "fault" : ""}" title="${esc(labels[c.status] || "未知")}">${c.number}</span>`).join("")}</div><div class="card-foot"><span class="state-text">${d.summary.available ? `有 ${d.summary.available} 个空位` : "暂时没有空位"}</span><button class="button secondary open-button" data-id="${esc(d.id)}">打开充电页</button></div></article>`;
+      }
+      function bindOpen() {
+        $$(".open-button").forEach((b) =>
+          b.addEventListener("click", async () => {
+            b.disabled = true;
+            try {
+              location.href = (
+                await post("/api/open", {
+                  id: b.dataset.id,
+                  credentialText: storedCredential(),
+                })
+              ).scheme;
+            } catch (e) {
+              alert(e.message);
+              b.disabled = false;
+            }
+          }),
+        );
+      }
+      async function queryAll() {
+        queryButton.disabled = true;
+        queryButton.innerHTML = '<span class="spin"></span>查询中';
+        notice.hidden = true;
+        try {
+          const { data } = await post("/api/status", {
+            credentialText: storedCredential(),
+          });
+          grid.innerHTML = data.devices.map(card).join("");
+          $("#available-total").textContent = data.summary.available;
+          $("#device-total").textContent =
+            `${data.summary.successful}/${data.summary.devices}`;
+          $("#port-total").textContent = data.summary.total;
+          summary.hidden = false;
+          queryMeta.textContent = `${time(data.queriedAt)} 更新 · 共 ${data.summary.devices} 台`;
+          const expired = data.devices.some(
+            (d) => !d.ok && d.message.includes("凭证"),
+          );
+          notice.hidden = !expired;
+          if (expired) {
+            credentialPanel.hidden = false;
+            credentialResult.textContent = "凭证已失效，请粘贴最新响应";
+            credentialText.focus();
+          }
+          bindOpen();
+        } catch (e) {
+          grid.innerHTML = `<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`;
+        } finally {
+          queryButton.disabled = false;
+          queryButton.textContent = "重新查询";
+        }
+      }
+      queryButton.addEventListener("click", queryAll);
+      $("#credential-toggle").addEventListener("click", () => {
+        credentialPanel.hidden = !credentialPanel.hidden;
+        if (!credentialPanel.hidden) credentialText.focus();
+      });
+      $("#credential-cancel").addEventListener("click", () => {
+        credentialPanel.hidden = true;
+        credentialText.value = "";
+        credentialResult.textContent = "";
+      });
+      credentialSave.addEventListener("click", async () => {
+        credentialSave.disabled = true;
+        credentialResult.textContent = "正在验证凭证…";
+        try {
+          const pastedCredential = credentialText.value;
+          const r = await post("/api/credentials", {
+            text: pastedCredential,
+          });
+          sessionStorage.setItem(credentialStorageKey, pastedCredential);
+          credentialResult.textContent = r.message;
+          credentialText.value = "";
+          credentialPanel.hidden = true;
+          await queryAll();
+        } catch (e) {
+          credentialResult.textContent = e.message;
+        } finally {
+          credentialSave.disabled = false;
+        }
+      });
+      queryAll();
+    </script>
+  </body>
+</html>
