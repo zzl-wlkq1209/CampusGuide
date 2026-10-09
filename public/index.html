@@ -949,16 +949,19 @@
         )
         .join("");
       let parsedCode = "",
-        parsedCabinet = 0;
+        parsedCabinet = 0,
+        parsedDoor = "";
       function parseParcel() {
         const t = $("#parcel-message").value,
           c = t.match(/(?:^|\D)(\d{4})[-\s]?([0-9]{4})(?!\d)/),
-          b = t.match(/([1-6])\s*号柜/);
+          b = t.match(/([1-6])\s*号柜/),
+          d = t.match(/[1-6]\s*号柜\s*(?:柜门号?\s*)?([A-Za-z]?\d{1,4})/i);
         parsedCode = c ? c[1] + c[2] : "";
         parsedCabinet = b ? Number(b[1]) : 0;
+        parsedDoor = d ? d[1].toUpperCase() : "";
         const r = $("#parcel-result");
         if (parsedCode && parsedCabinet)
-          r.innerHTML = `取件码 <strong>${parsedCode}</strong> · ${parsedCabinet}号柜`;
+          r.innerHTML = `取件码 <strong>${parsedCode}</strong> · ${parsedCabinet}号柜${parsedDoor ? ` · ${parsedDoor}` : ""}`;
         else
           r.textContent = parsedCode
             ? `已识别取件码 ${parsedCode}，未识别柜号`
@@ -1013,7 +1016,7 @@
         try {
           await navigator.clipboard.writeText(parsedCode);
           $("#parcel-result").innerHTML =
-            `取件码 <strong>${parsedCode}</strong> 已复制 · ${parsedCabinet || "?"}号柜`;
+            `取件码 <strong>${parsedCode}</strong> 已复制 · ${parsedCabinet || "?"}号柜${parsedDoor ? ` · ${parsedDoor}` : ""}`;
         } catch {
           $("#parcel-result").textContent = `请手动复制：${parsedCode}`;
         }
