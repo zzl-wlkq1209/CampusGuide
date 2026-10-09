@@ -188,6 +188,15 @@
         margin: 0.35rem 0 0;
         font-size: 0.9rem;
       }
+      .charging-head {
+        align-items: center;
+      }
+      .charging-head > div {
+        min-width: 0;
+      }
+      .charging-head .button {
+        flex: 0 0 auto;
+      }
       .button {
         min-height: 2.75rem;
         padding: 0 1rem;
@@ -591,6 +600,30 @@
         background: rgba(255, 183, 97, 0.08);
         color: #ffd4a4;
       }
+      .credential-toast {
+        position: fixed;
+        top: max(1.2rem, env(safe-area-inset-top));
+        left: 50%;
+        z-index: 100;
+        padding: 0.72rem 1.05rem;
+        border: 1px solid rgba(7, 20, 29, 0.12);
+        border-radius: 0.8rem;
+        background: #fff;
+        color: #10202a;
+        box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.25);
+        font-size: 0.9rem;
+        font-weight: 760;
+        opacity: 0;
+        transform: translate(-50%, -0.45rem);
+        transition:
+          opacity 0.28s ease,
+          transform 0.28s ease;
+        pointer-events: none;
+      }
+      .credential-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
       .footer {
         margin-top: 2rem;
         color: var(--muted);
@@ -636,6 +669,13 @@
         }
         .panel-head .button {
           margin-top: 0.35rem;
+        }
+        .panel-head.charging-head {
+          align-items: center;
+          flex-direction: row;
+        }
+        .panel-head.charging-head .button {
+          margin-top: 0;
         }
         .link-grid,
         .device-grid {
@@ -787,17 +827,12 @@
         <div class="cabinet-grid" id="cabinet-grid"></div>
       </section>
       <section class="panel" id="panel-charging" hidden>
-        <div class="panel-head">
+        <div class="panel-head charging-head">
           <div>
             <h2>充电桩状态</h2>
             <p id="query-meta">进入本页后自动查询。</p>
           </div>
-          <div>
-            <button class="button secondary" id="credential-toggle">
-              更新凭证
-            </button>
-            <button class="button primary" id="query-button">重新查询</button>
-          </div>
+          <button class="button primary" id="query-button">重新查询</button>
         </div>
         <section class="credential-panel" id="credential-panel" hidden>
           <h3>粘贴小程序授权响应</h3>
@@ -833,13 +868,17 @@
         <section class="device-grid" id="device-grid" aria-live="polite">
           <div class="empty">正在读取充电桩状态…</div>
         </section>
-        <div class="notice" id="notice" hidden>
-          部分新版设备的微信凭证已失效，请粘贴最新授权响应。
-        </div>
         <p class="charge-note">
           充电位状态仅供出发前参考，现场占用情况可能随时变化。
         </p>
       </section>
+      <div
+        class="credential-toast"
+        id="credential-toast"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
       <section class="panel" id="panel-food" hidden>
         <div class="panel-head">
           <div>
@@ -1002,12 +1041,12 @@
       const queryButton = $("#query-button"),
         grid = $("#device-grid"),
         summary = $("#summary"),
-        notice = $("#notice"),
         queryMeta = $("#query-meta"),
         credentialPanel = $("#credential-panel"),
         credentialText = $("#credential-text"),
         credentialResult = $("#credential-result"),
-        credentialSave = $("#credential-save");
+        credentialSave = $("#credential-save"),
+        credentialToast = $("#credential-toast");
       const credentialStorageKey = "bit-charging-credential-response";
       const storedCredential = () =>
         sessionStorage.getItem(credentialStorageKey) || "";
@@ -1041,6 +1080,23 @@
           second: "2-digit",
           hour12: false,
         }).format(new Date(i));
+      let toastTimer;
+      function showCredentialToast(message) {
+        clearTimeout(toastTimer);
+        credentialToast.classList.remove("show");
+        credentialToast.hidden = false;
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => credentialToast.classList.add("show")),
+        );
+        toastTimer = setTimeout(() => {
+          credentialToast.classList.remove("show");
+          setTimeout(() => {
+            if (!credentialToast.classList.contains("show"))
+              credentialToast.hidden = true;
+          }, 300);
+        }, 1000);
+        credentialToast.textContent = message;
+      }
       async function post(url, body) {
         try {
           const r = await fetch(url, {
@@ -1127,7 +1183,6 @@
         queryButton.disabled = true;
         queryButton.textContent = "查询中";
         if (!keepCurrentResults) {
-          notice.hidden = true;
           summary.hidden = true;
           queryMeta.textContent = "正在刷新 11 台设备…";
           grid.innerHTML =
@@ -1135,15 +1190,21 @@
         }
         try {
           let result;
+          let credentialRefreshStarted = false;
           for (let attempt = 0; attempt < 24; attempt += 1) {
             result = await post("/api/status", { queryId });
             if (!result.refreshing) break;
+            if (!credentialRefreshStarted) {
+              credentialRefreshStarted = true;
+              showCredentialToast("正在重新获取凭证");
+            }
             await new Promise((resolve) => setTimeout(resolve, 2500));
           }
           if (!result || result.refreshing) {
             throw new Error("自动更新凭证超时，请确认查询电脑处于开机解锁状态");
           }
           const { data } = result;
+          if (!credentialRefreshStarted) showCredentialToast("当前凭证有效");
           grid.innerHTML = data.devices.map(card).join("");
           $("#available-total").textContent = data.summary.available;
           $("#device-total").textContent =
@@ -1154,12 +1215,6 @@
           const expired = data.devices.some(
             (d) => !d.ok && d.message.includes("凭证"),
           );
-          notice.hidden = !expired;
-          if (expired) {
-            credentialPanel.hidden = false;
-            credentialResult.textContent = "凭证已失效，请粘贴最新响应";
-            credentialText.focus();
-          }
           bindOpen();
           return { expired };
         } catch (e) {
@@ -1187,10 +1242,50 @@
           queryButton.textContent = "重新查询";
         }
       }
-      queryButton.addEventListener("click", queryAll);
-      $("#credential-toggle").addEventListener("click", () => {
-        credentialPanel.hidden = !credentialPanel.hidden;
-        if (!credentialPanel.hidden) credentialText.focus();
+      let queryHoldTimer;
+      let queryHoldStart;
+      let queryHoldTriggered = false;
+      queryButton.addEventListener("pointerdown", (event) => {
+        if (queryButton.disabled || (event.button !== 0 && event.button !== -1))
+          return;
+        queryHoldStart = { x: event.clientX, y: event.clientY };
+        queryHoldTimer = setTimeout(() => {
+          queryHoldTriggered = true;
+          credentialPanel.hidden = false;
+          credentialText.focus();
+        }, 650);
+      });
+      queryButton.addEventListener("pointermove", (event) => {
+        if (
+          queryHoldStart &&
+          Math.hypot(
+            event.clientX - queryHoldStart.x,
+            event.clientY - queryHoldStart.y,
+          ) > 10
+        ) {
+          clearTimeout(queryHoldTimer);
+          queryHoldStart = null;
+        }
+      });
+      queryButton.addEventListener("pointerup", () => {
+        clearTimeout(queryHoldTimer);
+        queryHoldStart = null;
+      });
+      queryButton.addEventListener("pointercancel", () => {
+        clearTimeout(queryHoldTimer);
+        queryHoldStart = null;
+        queryHoldTriggered = false;
+      });
+      queryButton.addEventListener("contextmenu", (event) =>
+        event.preventDefault(),
+      );
+      queryButton.addEventListener("click", (event) => {
+        if (queryHoldTriggered) {
+          queryHoldTriggered = false;
+          event.preventDefault();
+          return;
+        }
+        queryAll();
       });
       $("#credential-cancel").addEventListener("click", () => {
         credentialPanel.hidden = true;
