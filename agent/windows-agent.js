@@ -32,6 +32,10 @@ const OPEN_COMMAND = process.env.CHARGING_OPEN_COMMAND || "";
 const CLOSE_COMMAND = process.env.CHARGING_CLOSE_COMMAND || "";
 const POLL_MS = Number(process.env.AGENT_POLL_MS || 3000);
 const CAPTURE_TIMEOUT_MS = Number(process.env.CAPTURE_TIMEOUT_MS || 60000);
+const REQABLE_READY_DELAY_MS = Number(
+  process.env.REQABLE_READY_DELAY_MS || 8000,
+);
+const REOPEN_DELAY_MS = Number(process.env.REOPEN_DELAY_MS || 12000);
 
 function assertConfig() {
   const missing = [];
@@ -94,8 +98,8 @@ async function closeChargingProgram() {
   // 默认不操作任何微信进程。车充安窗口由用户手动关闭，避免影响微信登录状态。
 }
 
-async function waitForCapture(startedAt) {
-  const deadline = Date.now() + CAPTURE_TIMEOUT_MS;
+async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const files = [CAPTURE_FILE];
     try {
@@ -131,8 +135,24 @@ async function refreshCredential(requestId) {
   fs.mkdirSync(path.dirname(CAPTURE_FILE), { recursive: true });
   startReqable();
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1800));
+    // 先让 Reqable 完成代理和抓包引擎初始化，再触发小程序请求。
+    await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
     await openChargingProgram();
+    try {
+      const text = await waitForCapture(
+        startedAt,
+        Math.min(CAPTURE_TIMEOUT_MS, 20_000),
+      );
+      await api("credentials", { requestId, text });
+      return;
+    } catch (error) {
+      // 微信/小程序可能复用已有页面会话，再打开一次以触发新的授权请求。
+      console.warn(
+        `[${new Date().toLocaleString()}] 首次授权未捕获，准备再次打开车充安`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, REOPEN_DELAY_MS));
+      await openChargingProgram();
+    }
     const text = await waitForCapture(startedAt);
     await api("credentials", { requestId, text });
   } finally {
