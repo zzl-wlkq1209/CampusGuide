@@ -976,15 +976,20 @@
         if (!parsedCode) return;
         try {
           await navigator.clipboard.writeText(parsedCode);
-          $("#parcel-result").innerHTML =
-            `取件码 <strong>${parsedCode}</strong> 已复制 · ${parsedCabinet || "?"}号柜${parsedDoor ? ` · ${parsedDoor}` : ""}`;
-        } catch {
-          $("#parcel-result").textContent = `请手动复制：${parsedCode}`;
-        }
+        } catch {}
       }
       $("#open-cabinet").addEventListener("click", async () => {
+        const cabinetUrl = parsedCabinet
+          ? cabinetUrls[parsedCabinet - 1]
+          : null;
         await copyCode();
-        if (parsedCabinet) location.href = cabinetUrls[parsedCabinet - 1];
+        $("#parcel-message").value = "";
+        parsedCode = null;
+        parsedCabinet = null;
+        parsedDoor = null;
+        $("#parcel-result").textContent = "等待粘贴短信";
+        $("#open-cabinet").disabled = true;
+        if (cabinetUrl) location.href = cabinetUrl;
       });
       const queryButton = $("#query-button"),
         grid = $("#device-grid"),
