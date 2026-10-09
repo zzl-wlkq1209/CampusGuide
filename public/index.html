@@ -1107,13 +1107,16 @@
         }),
       );
       async function queryAll() {
+        const keepCurrentResults = Boolean(grid.querySelector(".card"));
         queryButton.disabled = true;
-        queryButton.innerHTML = '<span class="spin"></span>查询中';
-        notice.hidden = true;
-        summary.hidden = true;
-        queryMeta.textContent = "正在刷新 11 台设备…";
-        grid.innerHTML =
-          '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
+        queryButton.textContent = "查询中";
+        if (!keepCurrentResults) {
+          notice.hidden = true;
+          summary.hidden = true;
+          queryMeta.textContent = "正在刷新 11 台设备…";
+          grid.innerHTML =
+            '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
+        }
         try {
           let result;
           for (let attempt = 0; attempt < 24; attempt += 1) {
@@ -1144,8 +1147,12 @@
           bindOpen();
           return { expired };
         } catch (e) {
-          grid.innerHTML = `<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`;
-          queryMeta.textContent = "查询失败";
+          if (keepCurrentResults) {
+            queryMeta.textContent = `查询失败：${e.message}`;
+          } else {
+            grid.innerHTML = `<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`;
+            queryMeta.textContent = "查询失败";
+          }
           return null;
         } finally {
           queryButton.disabled = false;
