@@ -225,28 +225,52 @@
         display: block;
       }
       .takeout-card {
-        display: grid;
-        grid-template-columns: 1fr 5.5rem;
-        gap: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
         align-items: center;
-        padding: 0.8rem;
+        padding: 0.9rem;
         border: 1px solid var(--line);
         border-radius: 1.1rem;
         background: rgba(13, 32, 44, 0.92);
       }
-      .takeout-card .quick-link {
-        min-height: 5rem;
-        padding: 0.35rem;
-        border: 0;
-        background: transparent;
-      }
       .takeout-card img {
         display: block;
-        width: 5.5rem;
-        height: 5.5rem;
-        padding: 0.3rem;
+        width: min(100%, 9rem);
+        aspect-ratio: 1;
+        padding: 0.4rem;
         border-radius: 0.7rem;
         background: white;
+      }
+      .takeout-card strong {
+        font-size: 0.95rem;
+        text-align: center;
+      }
+      #panel-food .link-grid {
+        grid-template-columns: 1fr;
+      }
+      .food-scan {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 1.1rem;
+        background: rgba(13, 32, 44, 0.92);
+      }
+      .food-scan img {
+        width: 6.5rem;
+        height: 6.5rem;
+        padding: 0.35rem;
+        border-radius: 0.75rem;
+        background: white;
+      }
+      .food-scan span {
+        display: block;
+        margin-top: 0.3rem;
+        color: var(--muted);
+        font-size: 0.84rem;
       }
       .charge-note {
         margin: 1rem 0 0;
@@ -376,11 +400,28 @@
         border-radius: 1.1rem;
         background: rgba(13, 32, 44, 0.94);
       }
+      .card.open-card {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      @media (hover: hover) {
+        .card.open-card:hover {
+          border-color: #3d687c;
+          background: #102c3a;
+        }
+      }
+      .card.open-card:focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
+      }
       .card.error {
         border-color: rgba(255, 133, 133, 0.45);
       }
       .card-head {
-        align-items: flex-start;
+        align-items: center;
       }
       .order {
         display: grid;
@@ -417,9 +458,13 @@
         font-size: 1.55rem;
         line-height: 1;
       }
-      .count span {
+      .count strong span {
         color: var(--muted);
-        font-size: 0.73rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .count.zero strong {
+        color: #ff8585;
       }
       .ports {
         display: grid;
@@ -446,13 +491,6 @@
       .port.fault {
         color: #ffc0c0;
         border-color: #934b55;
-      }
-      .card-foot {
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--line);
-      }
-      .state-text {
-        font-size: 0.8rem;
       }
       .error-message {
         margin: 1rem 0;
@@ -551,9 +589,8 @@
         .device-grid .count strong {
           font-size: 1.2rem;
         }
-        .device-grid .count span {
-          display: block;
-          max-width: 3.4rem;
+        .device-grid .count strong span {
+          display: inline;
           font-size: 0.62rem;
           line-height: 1.1;
         }
@@ -565,21 +602,6 @@
         .device-grid .port {
           border-radius: 0.3rem;
           font-size: 0.62rem;
-        }
-        .device-grid .card-foot {
-          align-items: stretch;
-          flex-direction: column;
-          gap: 0.4rem;
-          padding-top: 0.5rem;
-        }
-        .device-grid .state-text {
-          font-size: 0.7rem;
-          text-align: center;
-        }
-        .device-grid .open-button {
-          width: 100%;
-          padding: 0.48rem 0.35rem;
-          font-size: 0.72rem;
         }
         .device-grid .error-message {
           margin: 0.6rem 0;
@@ -649,54 +671,26 @@
         </div>
         <div class="link-grid">
           <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTM=&category=UElDSw=="
-              ><span class="quick-icon">01</span>
-              <div><strong>远志楼北侧</strong><span>尝试直接打开</span></div></a
-            ><img src="/qrcodes/takeout-1.png" alt="远志楼北侧外卖柜二维码" />
+            <img src="/qrcodes/takeout-1.png" alt="远志楼北侧外卖柜二维码" />
+            <strong>远志楼北侧</strong>
           </article>
           <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgxODAwMzc=&category=UElDSw=="
-              ><span class="quick-icon">02</span>
-              <div><strong>国防科技园</strong><span>尝试直接打开</span></div></a
-            ><img src="/qrcodes/takeout-2.png" alt="国防科技园外卖柜二维码" />
+            <img src="/qrcodes/takeout-2.png" alt="国防科技园外卖柜二维码" />
+            <strong>国防科技园</strong>
           </article>
           <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAyMTA=&category=UElDSw=="
-              ><span class="quick-icon">03</span>
-              <div><strong>硕博公寓西</strong><span>尝试直接打开</span></div></a
-            ><img src="/qrcodes/takeout-3.png" alt="硕博公寓西外卖柜二维码" />
+            <img src="/qrcodes/takeout-3.png" alt="硕博公寓西外卖柜二维码" />
+            <strong>硕博公寓西</strong>
           </article>
           <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://peisong.meituan.com/app/wxmpCabinet/roleSelect?mtDeviceId=RENYWFNYWFgwNjAxOTU=&category=UElDSw=="
-              ><span class="quick-icon">04</span>
-              <div>
-                <strong>信息科学实验楼南</strong><span>尝试直接打开</span>
-              </div></a
-            ><img
+            <img
               src="/qrcodes/takeout-4.png"
               alt="信息科学实验楼南外卖柜二维码"
             />
+            <strong>信息科学实验楼南</strong>
           </article>
         </div>
-        <p class="charge-note">
-          美团原始链接当前会返回 404；若无法直达，请在微信中长按右侧二维码识别。
-        </p>
+        <p class="charge-note">请在微信中长按二维码识别。</p>
       </section>
       <section class="panel" id="panel-parcel" hidden>
         <div class="panel-head">
@@ -782,38 +776,28 @@
         <div class="panel-head">
           <div>
             <h2>校园餐饮</h2>
-            <p>直接打开商家点单页面。</p>
+            <p>点击直达或长按二维码点餐。</p>
           </div>
         </div>
         <div class="link-grid">
-          <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"
-              ><span class="quick-icon">🍔</span>
-              <div>
-                <strong>肯德旺汉堡炸鸡</strong><span>尝试直接打开</span>
-              </div></a
-            ><img src="/qrcodes/food-1.png" alt="肯德旺汉堡炸鸡点餐二维码" />
-          </article>
-          <article class="takeout-card">
-            <a
-              class="quick-link"
-              target="_blank"
-              rel="noopener"
-              href="https://m.sqbe.cn/2d?c=23100902312159449143"
-              ><span class="quick-icon">🍜</span>
-              <div>
-                <strong>好这口重庆小面</strong><span>尝试直接打开</span>
-              </div></a
-            ><img src="/qrcodes/food-2.png" alt="好这口重庆小面点餐二维码" />
+          <a
+            class="quick-link"
+            target="_blank"
+            rel="noopener"
+            href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"
+            ><span class="quick-icon">🍔</span>
+            <div>
+              <strong>肯德旺汉堡炸鸡</strong><span>点击直接点餐</span>
+            </div></a
+          >
+          <article class="food-scan">
+            <div>
+              <strong>好这口重庆小面</strong>
+              <span>微信长按二维码识别</span>
+            </div>
+            <img src="/qrcodes/food-2.png" alt="好这口重庆小面点餐二维码" />
           </article>
         </div>
-        <p class="charge-note">
-          点击后若不是点餐页，请在微信中长按右侧二维码识别。
-        </p>
       </section>
       <p class="footer">北理校园常用服务快捷入口</p>
     </main>
@@ -939,27 +923,37 @@
       }
       function card(d, i) {
         if (!d.ok)
-          return `<article class="card error"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p><div class="card-foot"><span class="state-text">更新凭证后可重试</span></div></article>`;
-        return `<article class="card"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count"><strong>${d.summary.available}</strong><span>空闲 / ${d.summary.total}</span></div></div><div class="ports">${d.channels.map((c) => `<span class="port ${c.status === "I" ? "available" : ["F", "B", "D"].includes(c.status) ? "fault" : ""}" title="${esc(labels[c.status] || "未知")}">${c.number}</span>`).join("")}</div><div class="card-foot"><span class="state-text">${d.summary.available ? `有 ${d.summary.available} 个空位` : "暂时没有空位"}</span><button class="button secondary open-button" data-id="${esc(d.id)}">打开充电页</button></div></article>`;
+          return `<article class="card error"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p></article>`;
+        return `<article class="card open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count ${d.summary.available === 0 ? "zero" : ""}"><strong>${d.summary.available}<span>/${d.summary.total}</span></strong></div></div><div class="ports">${d.channels.map((c) => `<span class="port ${c.status === "I" ? "available" : ["F", "B", "D"].includes(c.status) ? "fault" : ""}" title="${esc(labels[c.status] || "未知")}">${c.number}</span>`).join("")}</div></article>`;
       }
       function bindOpen() {
-        $$(".open-button").forEach((b) =>
-          b.addEventListener("click", async () => {
-            b.disabled = true;
+        $$(".open-card").forEach((card) => {
+          const open = async () => {
+            card.setAttribute("aria-busy", "true");
             try {
-              location.href = (
-                await post("/api/open", {
-                  id: b.dataset.id,
-                  credentialText: storedCredential(),
-                })
-              ).scheme;
+              const { scheme } = await post("/api/open", {
+                id: card.dataset.id,
+                credentialText: storedCredential(),
+              });
+              card.removeAttribute("aria-busy");
+              location.href = scheme;
             } catch (e) {
+              card.removeAttribute("aria-busy");
               alert(e.message);
-              b.disabled = false;
             }
-          }),
-        );
+          };
+          card.addEventListener("click", open);
+          card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              open();
+            }
+          });
+        });
       }
+      addEventListener("pageshow", () =>
+        $$(".open-card").forEach((card) => card.removeAttribute("aria-busy")),
+      );
       async function queryAll() {
         queryButton.disabled = true;
         queryButton.innerHTML = '<span class="spin"></span>查询中';
