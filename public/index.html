@@ -356,6 +356,8 @@
         min-height: 3rem;
       }
       .parse-copy {
+        flex: 1;
+        min-width: 0;
         color: var(--muted);
         font-size: 0.9rem;
       }
@@ -364,6 +366,8 @@
       }
       .parse-actions {
         display: flex;
+        align-items: center;
+        flex: 0 0 auto;
         gap: 0.55rem;
       }
       .cabinet-grid {
@@ -671,13 +675,6 @@
         .cabinet-grid {
           grid-template-columns: repeat(2, 1fr);
         }
-        .parse-result {
-          align-items: stretch;
-          flex-direction: column;
-        }
-        .parse-actions .button {
-          flex: 1;
-        }
       }
       @media (max-width: 420px) {
         .tab {
@@ -768,9 +765,8 @@
           <div class="parse-result">
             <div class="parse-copy" id="parcel-result">等待粘贴短信</div>
             <div class="parse-actions">
-              <button class="button ghost" id="paste-message">粘贴并替换</button
-              ><button class="button primary" id="open-cabinet" disabled>
-                复制并打开柜机
+              <button class="button primary" id="open-cabinet" disabled>
+                取件
               </button>
             </div>
           </div>
@@ -971,46 +967,6 @@
         $("#open-cabinet").disabled = !(parsedCode && parsedCabinet);
       }
       $("#parcel-message").addEventListener("input", parseParcel);
-      async function readClipboardText() {
-        if (!window.isSecureContext)
-          throw new Error("剪贴板只能在 HTTPS 页面中读取");
-        if (navigator.clipboard?.readText) {
-          try {
-            const text = await navigator.clipboard.readText();
-            if (text) return text;
-          } catch {}
-        }
-        if (navigator.clipboard?.read) {
-          try {
-            const items = await navigator.clipboard.read();
-            for (const item of items) {
-              if (!item.types.includes("text/plain")) continue;
-              return await (await item.getType("text/plain")).text();
-            }
-          } catch {}
-        }
-        const field = $("#parcel-message");
-        field.focus();
-        field.select();
-        try {
-          if (document.execCommand("paste")) return field.value;
-        } catch {}
-        throw new Error("当前微信禁止网页自动读取剪贴板");
-      }
-      $("#paste-message").addEventListener("click", async () => {
-        const field = $("#parcel-message");
-        try {
-          const text = await readClipboardText();
-          if (!text) throw new Error("剪贴板中没有文本");
-          field.value = text;
-          parseParcel();
-        } catch (error) {
-          field.focus();
-          field.select();
-          $("#parcel-result").textContent =
-            `${error.message}；请在已选中的输入框中长按选择“粘贴”`;
-        }
-      });
       async function copyCode() {
         if (!parsedCode) return;
         try {

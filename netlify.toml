@@ -9,7 +9,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Permissions-Policy = "clipboard-read=(self), clipboard-write=(self)"
+    Permissions-Policy = "clipboard-write=(self)"
 
 [[redirects]]
   from = "/api/*"
