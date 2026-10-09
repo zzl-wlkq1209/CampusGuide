@@ -28,8 +28,10 @@ const REQABLE_CAPTURE_DIR = path.resolve(
     path.join(process.env.APPDATA || "", "Reqable", "capture"),
 );
 const REQABLE_PATH = process.env.REQABLE_PATH || "";
+const WECHAT_PATH = process.env.WECHAT_PATH || "D:\\WeChat\\Weixin\\Weixin.exe";
 const OPEN_COMMAND = process.env.CHARGING_OPEN_COMMAND || "";
 const CLOSE_COMMAND = process.env.CHARGING_CLOSE_COMMAND || "";
+const LEGACY_OPEN_URL = process.env.LEGACY_OPEN_URL || "";
 const POLL_MS = Number(process.env.AGENT_POLL_MS || 3000);
 const CAPTURE_TIMEOUT_MS = Number(process.env.CAPTURE_TIMEOUT_MS || 60000);
 const REQABLE_READY_DELAY_MS = Number(
@@ -87,6 +89,15 @@ async function stopReqable() {
 
 async function openChargingProgram() {
   if (OPEN_COMMAND) return runCommand(OPEN_COMMAND);
+  if (LEGACY_OPEN_URL) {
+    const wechat = spawn(WECHAT_PATH, [LEGACY_OPEN_URL], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: false,
+    });
+    wechat.unref();
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
   const { scheme } = await api("open");
   await execFileAsync("rundll32.exe", ["url.dll,FileProtocolHandler", scheme], {
     windowsHide: true,
