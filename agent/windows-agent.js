@@ -35,7 +35,7 @@ const LEGACY_OPEN_URL = process.env.LEGACY_OPEN_URL || "";
 const POLL_MS = Number(process.env.AGENT_POLL_MS || 3000);
 const CAPTURE_TIMEOUT_MS = Number(process.env.CAPTURE_TIMEOUT_MS || 60000);
 const REQABLE_READY_DELAY_MS = Number(
-  process.env.REQABLE_READY_DELAY_MS || 15000,
+  process.env.REQABLE_READY_DELAY_MS || 10000,
 );
 const REOPEN_DELAY_MS = Number(process.env.REOPEN_DELAY_MS || 12000);
 const MAX_OPEN_ATTEMPTS = Math.max(
