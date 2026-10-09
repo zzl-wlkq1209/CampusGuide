@@ -624,6 +624,43 @@
         opacity: 1;
         transform: translate(-50%, -50%);
       }
+      .error-dialog-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 110;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(2, 10, 15, 0.62);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+      .error-dialog-backdrop[hidden] {
+        display: none;
+      }
+      .error-dialog {
+        width: min(100%, 24rem);
+        padding: 1.25rem;
+        border-radius: 1rem;
+        background: #fff;
+        color: #10202a;
+        box-shadow: 0 1.4rem 3.5rem rgba(0, 0, 0, 0.38);
+      }
+      .error-dialog h3 {
+        margin: 0 0 0.65rem;
+        font-size: 1.05rem;
+      }
+      .error-dialog p {
+        margin: 0;
+        color: #40535f;
+        line-height: 1.65;
+        white-space: pre-line;
+      }
+      .error-dialog .button {
+        display: block;
+        width: 100%;
+        margin-top: 1rem;
+      }
       .footer {
         margin-top: 2rem;
         color: var(--muted);
@@ -879,6 +916,21 @@
         aria-live="polite"
         hidden
       ></div>
+      <div class="error-dialog-backdrop" id="error-dialog" hidden>
+        <section
+          class="error-dialog"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="error-dialog-title"
+          aria-describedby="error-dialog-message"
+        >
+          <h3 id="error-dialog-title">查询未完成</h3>
+          <p id="error-dialog-message"></p>
+          <button class="button primary" id="error-dialog-confirm">
+            确认
+          </button>
+        </section>
+      </div>
       <section class="panel" id="panel-food" hidden>
         <div class="panel-head">
           <div>
@@ -1046,7 +1098,10 @@
         credentialText = $("#credential-text"),
         credentialResult = $("#credential-result"),
         credentialSave = $("#credential-save"),
-        credentialToast = $("#credential-toast");
+        credentialToast = $("#credential-toast"),
+        errorDialog = $("#error-dialog"),
+        errorDialogMessage = $("#error-dialog-message"),
+        errorDialogConfirm = $("#error-dialog-confirm");
       const credentialStorageKey = "bit-charging-credential-response";
       const storedCredential = () =>
         sessionStorage.getItem(credentialStorageKey) || "";
@@ -1097,6 +1152,18 @@
         }, 1000);
         credentialToast.textContent = message;
       }
+      function showQueryError(error) {
+        const parts = [error.errorPoint, error.action].filter(Boolean);
+        errorDialogMessage.textContent = parts.length
+          ? parts.join("\n\n")
+          : error.message || "查询失败，请检查网络后重试";
+        errorDialog.hidden = false;
+        errorDialogConfirm.focus();
+      }
+      errorDialogConfirm.addEventListener("click", () => {
+        errorDialog.hidden = true;
+        queryButton.focus();
+      });
       async function post(url, body) {
         try {
           const r = await fetch(url, {
@@ -1105,7 +1172,11 @@
               body: body ? JSON.stringify(body) : undefined,
             }),
             j = await r.json();
-          if (!r.ok || !j.ok) throw new Error(j.message || "请求失败");
+          if (!r.ok || !j.ok) {
+            const error = new Error(j.message || "请求失败");
+            Object.assign(error, j);
+            throw error;
+          }
           return j;
         } catch (e) {
           if (e instanceof TypeError && /fetch/i.test(e.message))
@@ -1218,6 +1289,7 @@
           bindOpen();
           return { expired };
         } catch (e) {
+          showQueryError(e);
           grid.innerHTML = chargingDevices
             .map((device, index) =>
               card(

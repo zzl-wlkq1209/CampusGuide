@@ -71,6 +71,10 @@ test("expired status creates a refresh job which the Windows agent can claim", a
     });
     assert.equal(failedSameQuery.statusCode, 503);
     assert.equal(JSON.parse(failedSameQuery.body).code, "REFRESH_FAILED");
+    assert.match(
+      JSON.parse(failedSameQuery.body).errorPoint,
+      /电脑代理执行失败/,
+    );
     assert.equal(tables.credential_refresh[0].request_id, "failed-job");
 
     const immediateRetry = await handler({
@@ -81,6 +85,23 @@ test("expired status creates a refresh job which the Windows agent can claim", a
     });
     assert.equal(immediateRetry.statusCode, 202);
     assert.notEqual(tables.credential_refresh[0].request_id, "failed-job");
+
+    tables.credential_refresh[0] = {
+      id: 1,
+      status: "requested",
+      request_id: "unclaimed-job",
+      source: "web:offline-query",
+      requested_at: new Date(Date.now() - 30_000).toISOString(),
+    };
+    const agentOffline = await handler({
+      httpMethod: "POST",
+      path: "/api/status",
+      headers: {},
+      body: JSON.stringify({ queryId: "offline-query" }),
+    });
+    assert.equal(agentOffline.statusCode, 503);
+    assert.match(JSON.parse(agentOffline.body).errorPoint, /未执行代理任务/);
+    assert.equal(tables.credential_refresh[0].status, "failed");
   } finally {
     global.fetch = originalFetch;
   }

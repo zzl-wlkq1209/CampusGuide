@@ -18,6 +18,8 @@ const {
 
 const AGENT_KEY = process.env.CREDENTIAL_AGENT_KEY || "";
 const BUILD_VERSION = "2026-10-09-retry-v2";
+const AGENT_CLAIM_TIMEOUT_MS = 15_000;
+const AGENT_WORK_TIMEOUT_MS = 90_000;
 
 function response(statusCode, body) {
   return {
@@ -46,6 +48,40 @@ function credentialsExpired(data) {
   );
 }
 
+function refreshError(errorPoint, action, detail) {
+  return response(503, {
+    ok: false,
+    code: "REFRESH_FAILED",
+    message: `${errorPoint}。${action}`,
+    errorPoint,
+    action,
+    detail: detail || null,
+  });
+}
+
+function failedRefreshMessage(refresh) {
+  const detail = String(refresh.error_message || "本地代理返回未知错误");
+  if (/未捕获|授权响应超时/.test(detail)) {
+    return refreshError(
+      "故障点：Reqable 未捕获微信授权响应",
+      "请确认微信已登录、Reqable 抓包和脚本开关已开启，然后点击重新查询",
+      detail,
+    );
+  }
+  if (/验证失败|凭证/.test(detail)) {
+    return refreshError(
+      "故障点：新凭证验证失败",
+      "请确认车充安已完成授权，然后点击重新查询",
+      detail,
+    );
+  }
+  return refreshError(
+    "故障点：电脑代理执行失败",
+    "请检查查询电脑上的代理日志、微信和 Reqable，然后点击重新查询",
+    detail,
+  );
+}
+
 exports.handler = async (event) => {
   try {
     const route = event.path.replace(
@@ -64,11 +100,30 @@ exports.handler = async (event) => {
           : "web-legacy";
         const refresh = await requestRefresh(refreshSource);
         if (refresh.failedForSource) {
-          return response(503, {
-            ok: false,
-            code: "REFRESH_FAILED",
-            message: "自动更新凭证失败，可点击重新查询再次尝试",
+          return failedRefreshMessage(refresh);
+        }
+        const taskAge = Date.now() - new Date(refresh.requested_at).getTime();
+        if (refresh.status === "requested" && taskAge > AGENT_CLAIM_TIMEOUT_MS) {
+          await patchRefresh({
+            status: "failed",
+            completed_at: new Date().toISOString(),
+            error_message: "电脑代理未在15秒内领取任务",
           });
+          return refreshError(
+            "故障点：查询电脑未执行代理任务",
+            "请确认电脑已开机并登录 Windows，且“CampusGuide Credential Agent”计划任务正在运行，然后点击重新查询",
+          );
+        }
+        if (refresh.status === "working" && taskAge > AGENT_WORK_TIMEOUT_MS) {
+          await patchRefresh({
+            status: "failed",
+            completed_at: new Date().toISOString(),
+            error_message: "电脑代理领取任务后90秒内未完成",
+          });
+          return refreshError(
+            "故障点：电脑代理执行超时",
+            "请检查电脑上的微信、Reqable 和网络状态，确认代理仍在运行后点击重新查询",
+          );
         }
         return response(202, {
           ok: true,
