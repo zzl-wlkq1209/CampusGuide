@@ -413,7 +413,8 @@ async function queryAllStatus(credentialsOverride = null) {
     try {
       credentials = loadCredentials();
     } catch (error) {
-      credentialError = error;
+      credentialError = new Error("微信凭证缺失，请粘贴最新授权响应");
+      credentialError.code = "02";
     }
   }
   const devices = await Promise.all(
