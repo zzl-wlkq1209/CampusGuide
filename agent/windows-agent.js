@@ -91,11 +91,7 @@ async function openChargingProgram() {
 
 async function closeChargingProgram() {
   if (CLOSE_COMMAND) return runCommand(CLOSE_COMMAND);
-  await execFileAsync(
-    "taskkill.exe",
-    ["/F", "/FI", "WINDOWTITLE eq 车充安充电助手"],
-    { windowsHide: true },
-  ).catch(() => {});
+  // 默认不操作任何微信进程。车充安窗口由用户手动关闭，避免影响微信登录状态。
 }
 
 async function waitForCapture(startedAt) {
@@ -136,13 +132,10 @@ async function refreshCredential(requestId) {
   startReqable();
   try {
     await new Promise((resolve) => setTimeout(resolve, 1800));
-    await closeChargingProgram();
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     await openChargingProgram();
     const text = await waitForCapture(startedAt);
     await api("credentials", { requestId, text });
   } finally {
-    await closeChargingProgram().catch(() => {});
     await stopReqable();
   }
 }

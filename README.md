@@ -55,7 +55,7 @@ node server.js `
 5. 执行 `npm run agent`，并把该命令配置为 Windows 登录后自动启动。
 
 代理默认从服务端获取 `weixin://` 链接打开车充安。完成上传和全设备查询后，它会结束
-标题为“车充安充电助手”的小程序窗口和 `Reqable.exe`；微信主程序及其登录状态不受影响。若本机行为不同，可用
+`Reqable.exe`；默认不会关闭微信或车充安窗口，避免影响微信主程序及登录状态。若你确认要自动关闭车充安，可自行配置
 `CHARGING_OPEN_COMMAND` 和 `CHARGING_CLOSE_COMMAND` 覆盖默认动作。
 
 所有凭证在写入 Supabase 前均使用 AES-256-GCM 加密；Supabase 表不向 `anon` 或
