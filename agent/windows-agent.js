@@ -132,7 +132,7 @@ async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
           parsed?.data?.authorization &&
           parsed?.data?.openId
         ) {
-          return text;
+          return { text, fileName };
         }
       } catch {}
     }
@@ -149,13 +149,12 @@ async function refreshCredential(requestId) {
     // 先让 Reqable 完成代理和抓包引擎初始化，再触发小程序请求。
     await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
     await openChargingProgram();
+    let capture;
     try {
-      const text = await waitForCapture(
+      capture = await waitForCapture(
         startedAt,
         Math.min(CAPTURE_TIMEOUT_MS, 20_000),
       );
-      await api("credentials", { requestId, text });
-      return;
     } catch (error) {
       // 微信/小程序可能复用已有页面会话，再打开一次以触发新的授权请求。
       console.warn(
@@ -163,9 +162,13 @@ async function refreshCredential(requestId) {
       );
       await new Promise((resolve) => setTimeout(resolve, REOPEN_DELAY_MS));
       await openChargingProgram();
+      capture = await waitForCapture(startedAt);
     }
-    const text = await waitForCapture(startedAt);
-    await api("credentials", { requestId, text });
+    console.log(
+      `[${new Date().toLocaleString()}] 已捕获授权响应：${path.basename(capture.fileName)}`,
+    );
+    await api("credentials", { requestId, text: capture.text });
+    console.log(`[${new Date().toLocaleString()}] 新凭证已验证并上传`);
   } finally {
     await stopReqable();
   }
