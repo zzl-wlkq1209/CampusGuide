@@ -136,7 +136,14 @@
         background: transparent;
         color: var(--muted);
         cursor: pointer;
+        font-size: 1rem;
         font-weight: 760;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+      .tab:active {
+        transform: none;
       }
       .tab.active {
         background: var(--surface2);
@@ -254,10 +261,32 @@
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
+        width: 100%;
+        min-height: 6.5rem;
+        box-sizing: border-box;
         padding: 1rem;
         border: 1px solid var(--line);
         border-radius: 1.1rem;
         background: rgba(13, 32, 44, 0.92);
+      }
+      .food-scan .food-identity {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-width: 0;
+      }
+      .food-scan .quick-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 3rem;
+        width: 3rem;
+        height: 3rem;
+        margin-top: 0;
+        border-radius: 0.9rem;
+        background: #183849;
+        color: var(--text);
+        font-size: 1.25rem;
       }
       .food-scan img {
         width: 6.5rem;
@@ -417,6 +446,11 @@
         outline: 2px solid var(--green);
         outline-offset: 2px;
       }
+      .card.open-card.tap-feedback {
+        transform: scale(0.975);
+        border-color: #4c8298;
+        background: #123342;
+      }
       .card.error {
         border-color: rgba(255, 133, 133, 0.45);
       }
@@ -551,7 +585,7 @@
           top: 0.35rem;
         }
         .tab {
-          font-size: 0.82rem;
+          font-size: 0.92rem;
         }
         .panel-head {
           align-items: stretch;
@@ -621,7 +655,7 @@
       }
       @media (max-width: 420px) {
         .tab {
-          font-size: 0.76rem;
+          font-size: 0.92rem;
         }
         .summary {
           gap: 0.4rem;
@@ -791,9 +825,12 @@
             </div></a
           >
           <article class="food-scan">
-            <div>
-              <strong>好这口重庆小面</strong>
-              <span>微信长按二维码识别</span>
+            <div class="food-identity">
+              <span class="quick-icon">🍜</span>
+              <div>
+                <strong>好这口重庆小面</strong>
+                <span>微信长按二维码识别</span>
+              </div>
             </div>
             <img src="/qrcodes/food-2.png" alt="好这口重庆小面点餐二维码" />
           </article>
@@ -928,7 +965,34 @@
       }
       function bindOpen() {
         $$(".open-card").forEach((card) => {
+          let touchStart = null;
+          let suppressClickUntil = 0;
+          card.addEventListener("pointerdown", (event) => {
+            if (event.pointerType === "touch")
+              touchStart = { x: event.clientX, y: event.clientY, moved: false };
+          });
+          card.addEventListener("pointermove", (event) => {
+            if (
+              touchStart &&
+              Math.hypot(
+                event.clientX - touchStart.x,
+                event.clientY - touchStart.y,
+              ) > 8
+            )
+              touchStart.moved = true;
+          });
+          card.addEventListener("pointerup", () => {
+            if (touchStart?.moved) suppressClickUntil = Date.now() + 350;
+            touchStart = null;
+          });
+          card.addEventListener("pointercancel", () => {
+            touchStart = null;
+            suppressClickUntil = Date.now() + 350;
+          });
           const open = async () => {
+            if (Date.now() < suppressClickUntil) return;
+            card.classList.add("tap-feedback");
+            setTimeout(() => card.classList.remove("tap-feedback"), 220);
             card.setAttribute("aria-busy", "true");
             try {
               const { scheme } = await post("/api/open", {
@@ -952,7 +1016,10 @@
         });
       }
       addEventListener("pageshow", () =>
-        $$(".open-card").forEach((card) => card.removeAttribute("aria-busy")),
+        $$(".open-card").forEach((card) => {
+          card.removeAttribute("aria-busy");
+          card.classList.remove("tap-feedback");
+        }),
       );
       async function queryAll() {
         queryButton.disabled = true;
