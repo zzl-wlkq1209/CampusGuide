@@ -1021,6 +1021,19 @@
         F: "通讯故障",
         B: "设备故障",
       };
+      const chargingDevices = [
+        ["building-13-1", "13号楼1号机"],
+        ["building-13-2", "13号楼2号机"],
+        ["building-7-1", "7号楼1号机"],
+        ["building-7-2", "7号楼2号机"],
+        ["building-12-1", "12号楼1号机"],
+        ["building-12-2", "12号楼2号机"],
+        ["building-11-1", "11号楼1号机"],
+        ["building-11-2", "11号楼2号机"],
+        ["defense-1", "国防科技园1号机"],
+        ["defense-2", "国防科技园2号机"],
+        ["new-building-1", "新1学生公寓"],
+      ].map(([id, name]) => ({ id, name }));
       const time = (i) =>
         new Intl.DateTimeFormat("zh-CN", {
           hour: "2-digit",
@@ -1150,8 +1163,24 @@
           if (keepCurrentResults) {
             queryMeta.textContent = `查询失败：${e.message}`;
           } else {
-            grid.innerHTML = `<div class="empty"><div><strong>查询失败</strong><br>${esc(e.message)}</div></div>`;
+            grid.innerHTML = chargingDevices
+              .map((device, index) =>
+                card(
+                  {
+                    ...device,
+                    ok: false,
+                    message: e.message,
+                  },
+                  index,
+                ),
+              )
+              .join("");
+            $("#available-total").textContent = "0";
+            $("#device-total").textContent = `0/${chargingDevices.length}`;
+            $("#port-total").textContent = "0";
+            summary.hidden = false;
             queryMeta.textContent = "查询失败";
+            bindOpen();
           }
           return null;
         } finally {
