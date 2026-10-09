@@ -261,11 +261,6 @@ function credentialsFromPayload(payload) {
   };
 }
 
-// Validate configuration once at startup. When a HAR path is used, the file is
-// deliberately re-read for every user action so a newly exported HAR takes
-// effect without restarting this service.
-loadCredentials();
-
 function json(res, status, body) {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
@@ -412,10 +407,19 @@ async function queryLegacyDevice(device, credentials) {
 }
 
 async function queryAllStatus(credentialsOverride = null) {
-  const credentials = credentialsOverride || loadCredentials();
+  let credentials = credentialsOverride;
+  let credentialError = null;
+  if (!credentials) {
+    try {
+      credentials = loadCredentials();
+    } catch (error) {
+      credentialError = error;
+    }
+  }
   const devices = await Promise.all(
     DEVICES.map(async (device) => {
       try {
+        if (device.mode !== "legacy" && !credentials) throw credentialError;
         return device.mode === "legacy"
           ? await queryLegacyDevice(device, credentials)
           : await queryMiniDevice(device, credentials);
@@ -450,13 +454,13 @@ async function queryAllStatus(credentialsOverride = null) {
 }
 
 async function generateScheme(device, credentialsOverride = null) {
-  const credentials = credentialsOverride || loadCredentials();
   if (device.mode === "legacy") {
     const legacyRequest = loadLegacyRequest();
     if (!legacyRequest)
       throw new Error("缺少国防科技园 HAR，请用 --legacy-har 指定");
     return `http://wx.99cda.com/cda-wx/chargingBike.do?q=${encodeURIComponent(device.q)}&qType=device&openId=${encodeURIComponent(legacyRequest.openId)}`;
   }
+  const credentials = credentialsOverride || loadCredentials();
   const query = new URLSearchParams({
     operatorId: device.operatorId,
     GID: device.gid,
