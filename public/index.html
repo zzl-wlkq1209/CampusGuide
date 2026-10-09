@@ -602,7 +602,7 @@
       }
       .credential-toast {
         position: fixed;
-        top: max(1.2rem, env(safe-area-inset-top));
+        top: 50%;
         left: 50%;
         z-index: 100;
         padding: 0.72rem 1.05rem;
@@ -614,7 +614,7 @@
         font-size: 0.9rem;
         font-weight: 760;
         opacity: 0;
-        transform: translate(-50%, -0.45rem);
+        transform: translate(-50%, calc(-50% - 0.45rem));
         transition:
           opacity 0.28s ease,
           transform 0.28s ease;
@@ -622,7 +622,7 @@
       }
       .credential-toast.show {
         opacity: 1;
-        transform: translate(-50%, 0);
+        transform: translate(-50%, -50%);
       }
       .footer {
         margin-top: 2rem;
