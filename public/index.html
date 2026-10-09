@@ -1160,28 +1160,24 @@
           bindOpen();
           return { expired };
         } catch (e) {
-          if (keepCurrentResults) {
-            queryMeta.textContent = `查询失败：${e.message}`;
-          } else {
-            grid.innerHTML = chargingDevices
-              .map((device, index) =>
-                card(
-                  {
-                    ...device,
-                    ok: false,
-                    message: e.message,
-                  },
-                  index,
-                ),
-              )
-              .join("");
-            $("#available-total").textContent = "0";
-            $("#device-total").textContent = `0/${chargingDevices.length}`;
-            $("#port-total").textContent = "0";
-            summary.hidden = false;
-            queryMeta.textContent = "查询失败";
-            bindOpen();
-          }
+          grid.innerHTML = chargingDevices
+            .map((device, index) =>
+              card(
+                {
+                  ...device,
+                  ok: false,
+                  message: e.message,
+                },
+                index,
+              ),
+            )
+            .join("");
+          $("#available-total").textContent = "0";
+          $("#device-total").textContent = `0/${chargingDevices.length}`;
+          $("#port-total").textContent = "0";
+          summary.hidden = false;
+          queryMeta.textContent = `查询失败：${e.message}`;
+          bindOpen();
           return null;
         } finally {
           queryButton.disabled = false;
