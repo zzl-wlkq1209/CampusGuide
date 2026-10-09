@@ -57,7 +57,7 @@
       .shell {
         width: min(100% - 2rem, 76rem);
         margin: auto;
-        padding: 1.1rem 0 calc(7rem + env(safe-area-inset-bottom));
+        padding: 1.1rem 0 5rem;
       }
       .topbar,
       .panel-head,
@@ -111,17 +111,15 @@
         color: var(--muted);
       }
       .tabs {
-        position: fixed;
-        left: 50%;
-        bottom: max(0.75rem, env(safe-area-inset-bottom));
-        z-index: 100;
+        position: sticky;
+        top: 0.65rem;
+        z-index: 20;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 0.4rem;
-        width: min(calc(100% - 1rem), 32rem);
-        margin: 0;
+        width: 100%;
+        margin: 1.3rem 0;
         padding: 0.4rem;
-        transform: translateX(-50%);
         border: 1px solid rgba(168, 215, 234, 0.22);
         border-radius: 1.35rem;
         background: linear-gradient(
@@ -609,6 +607,9 @@
         .intro {
           margin: 1.5rem 0.2rem 1rem;
         }
+        .tabs {
+          top: 0.35rem;
+        }
         .tab {
           font-size: 0.92rem;
         }
@@ -972,8 +973,7 @@
           $("#parcel-message").value = await navigator.clipboard.readText();
           parseParcel();
         } catch {
-          $("#parcel-result").textContent =
-            "无法读取剪贴板，请允许剪贴权限后重试";
+          $("#parcel-result").textContent = "请获取剪贴板权限后重试";
         }
       });
       async function copyCode() {
