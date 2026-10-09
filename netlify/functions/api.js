@@ -59,12 +59,15 @@ exports.handler = async (event) => {
         : await getStoredCredentials();
       const data = await queryAllStatus(credentials);
       if (credentialsExpired(data) && isCloudConfigured()) {
-        const refresh = await requestRefresh("web");
-        if (refresh.coolingDown || refresh.status === "failed") {
+        const refreshSource = payload.queryId
+          ? `web:${String(payload.queryId).slice(0, 100)}`
+          : "web-legacy";
+        const refresh = await requestRefresh(refreshSource);
+        if (refresh.failedForSource) {
           return response(503, {
             ok: false,
-            code: "REFRESH_COOLDOWN",
-            message: "自动更新凭证失败，请5分钟后再试",
+            code: "REFRESH_FAILED",
+            message: "自动更新凭证失败，可点击重新查询再次尝试",
           });
         }
         return response(202, {

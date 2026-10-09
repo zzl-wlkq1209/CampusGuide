@@ -6,9 +6,6 @@ const SUPABASE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   "";
 const ENCRYPTION_KEY_TEXT = process.env.CREDENTIAL_ENCRYPTION_KEY || "";
-const REFRESH_FAILURE_COOLDOWN_MS = Number(
-  process.env.REFRESH_FAILURE_COOLDOWN_MS || 5 * 60 * 1000,
-);
 
 function isCloudConfigured() {
   return Boolean(SUPABASE_URL && SUPABASE_KEY && ENCRYPTION_KEY_TEXT);
@@ -123,14 +120,8 @@ async function patchRefresh(fields) {
 async function requestRefresh(source = "web") {
   const current = await refreshRow();
   if (["requested", "working"].includes(current?.status)) return current;
-  const failedAt = current?.completed_at || current?.requested_at;
-  if (
-    current?.status === "failed" &&
-    failedAt &&
-    Date.now() - new Date(failedAt).getTime() <
-      REFRESH_FAILURE_COOLDOWN_MS
-  ) {
-    return { ...current, coolingDown: true };
+  if (current?.status === "failed" && current.source === source) {
+    return { ...current, failedForSource: true };
   }
   const requestId = crypto.randomUUID();
   const record = {

@@ -1121,6 +1121,9 @@
       );
       async function queryAll() {
         const keepCurrentResults = Boolean(grid.querySelector(".card"));
+        const queryId =
+          globalThis.crypto?.randomUUID?.() ||
+          `${Date.now()}-${Math.random().toString(16).slice(2)}`;
         queryButton.disabled = true;
         queryButton.textContent = "查询中";
         if (!keepCurrentResults) {
@@ -1133,7 +1136,7 @@
         try {
           let result;
           for (let attempt = 0; attempt < 24; attempt += 1) {
-            result = await post("/api/status");
+            result = await post("/api/status", { queryId });
             if (!result.refreshing) break;
             await new Promise((resolve) => setTimeout(resolve, 2500));
           }

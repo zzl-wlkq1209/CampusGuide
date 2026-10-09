@@ -53,12 +53,15 @@ test("encrypted credentials and refresh requests round-trip through Supabase RES
       id: 1,
       status: "failed",
       request_id: "failed-job",
-      requested_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-      completed_at: new Date().toISOString(),
+      source: "web:same-query",
     };
-    const cooledDown = await store.requestRefresh("test");
-    assert.equal(cooledDown.request_id, "failed-job");
-    assert.equal(cooledDown.coolingDown, true);
+    const sameQuery = await store.requestRefresh("web:same-query");
+    assert.equal(sameQuery.request_id, "failed-job");
+    assert.equal(sameQuery.failedForSource, true);
+
+    const nextQuery = await store.requestRefresh("web:next-query");
+    assert.equal(nextQuery.status, "requested");
+    assert.notEqual(nextQuery.request_id, "failed-job");
   } finally {
     global.fetch = originalFetch;
   }

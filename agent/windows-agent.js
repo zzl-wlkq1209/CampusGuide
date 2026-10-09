@@ -88,6 +88,15 @@ function startReqable() {
   child.unref();
 }
 
+async function isReqableRunning() {
+  const { stdout } = await execFileAsync(
+    "tasklist.exe",
+    ["/FI", "IMAGENAME eq Reqable.exe", "/NH"],
+    { windowsHide: true },
+  ).catch(() => ({ stdout: "" }));
+  return /Reqable\.exe/i.test(stdout);
+}
+
 async function stopReqable() {
   await execFileAsync("taskkill.exe", ["/F", "/IM", "Reqable.exe", "/T"], {
     windowsHide: true,
@@ -151,10 +160,13 @@ async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
 async function refreshCredential(requestId) {
   const startedAt = Date.now();
   fs.mkdirSync(path.dirname(CAPTURE_FILE), { recursive: true });
-  startReqable();
+  const reqableWasRunning = await isReqableRunning();
+  if (!reqableWasRunning) startReqable();
   try {
     // 先让 Reqable 完成代理和抓包引擎初始化，再触发小程序请求。
-    await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
+    if (!reqableWasRunning) {
+      await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
+    }
     let capture;
     for (let attempt = 1; attempt <= MAX_OPEN_ATTEMPTS; attempt += 1) {
       if (attempt > 1) {
@@ -177,7 +189,7 @@ async function refreshCredential(requestId) {
     await api("credentials", { requestId, text: capture.text });
     console.log(`[${new Date().toLocaleString()}] 新凭证已验证并上传`);
   } finally {
-    await stopReqable();
+    if (!reqableWasRunning) await stopReqable();
   }
 }
 

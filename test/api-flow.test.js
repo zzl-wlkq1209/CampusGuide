@@ -41,7 +41,7 @@ test("expired status creates a refresh job which the Windows agent can claim", a
       httpMethod: "POST",
       path: "/api/status",
       headers: {},
-      body: "{}",
+      body: JSON.stringify({ queryId: "initial-query" }),
     });
     assert.equal(status.statusCode, 202);
     assert.equal(JSON.parse(status.body).refreshing, true);
@@ -61,18 +61,26 @@ test("expired status creates a refresh job which the Windows agent can claim", a
       id: 1,
       status: "failed",
       request_id: "failed-job",
-      requested_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-      completed_at: new Date().toISOString(),
+      source: "web:failed-query",
     };
-    const cooledDownStatus = await handler({
+    const failedSameQuery = await handler({
       httpMethod: "POST",
       path: "/api/status",
       headers: {},
-      body: "{}",
+      body: JSON.stringify({ queryId: "failed-query" }),
     });
-    assert.equal(cooledDownStatus.statusCode, 503);
-    assert.equal(JSON.parse(cooledDownStatus.body).code, "REFRESH_COOLDOWN");
+    assert.equal(failedSameQuery.statusCode, 503);
+    assert.equal(JSON.parse(failedSameQuery.body).code, "REFRESH_FAILED");
     assert.equal(tables.credential_refresh[0].request_id, "failed-job");
+
+    const immediateRetry = await handler({
+      httpMethod: "POST",
+      path: "/api/status",
+      headers: {},
+      body: JSON.stringify({ queryId: "next-click" }),
+    });
+    assert.equal(immediateRetry.statusCode, 202);
+    assert.notEqual(tables.credential_refresh[0].request_id, "failed-job");
   } finally {
     global.fetch = originalFetch;
   }
