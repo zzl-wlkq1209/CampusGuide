@@ -289,8 +289,8 @@
         font-size: 1.25rem;
       }
       .food-scan img {
-        width: 6.5rem;
-        height: 6.5rem;
+        width: 4.375rem;
+        height: 4.375rem;
         padding: 0.35rem;
         border-radius: 0.75rem;
         background: white;
@@ -450,6 +450,17 @@
         transform: scale(0.975);
         border-color: #4c8298;
         background: #123342;
+      }
+      :is(.button, .quick-link, .cabinet).tap-feedback {
+        transform: scale(0.975);
+        filter: brightness(1.16);
+      }
+      .button,
+      .cabinet {
+        transition:
+          transform 0.12s,
+          filter 0.12s;
+        -webkit-tap-highlight-color: transparent;
       }
       .card.error {
         border-color: rgba(255, 133, 133, 0.45);
@@ -855,6 +866,47 @@
           );
       const tabs = $$(".tab"),
         panels = $$(".panel");
+      let pressState = null;
+      const feedbackTarget = (target) =>
+        target.closest?.(".button, .quick-link, .cabinet");
+      document.addEventListener("pointerdown", (event) => {
+        const target = feedbackTarget(event.target);
+        if (!target) return;
+        pressState = {
+          target,
+          x: event.clientX,
+          y: event.clientY,
+          moved: false,
+        };
+      });
+      document.addEventListener("pointermove", (event) => {
+        if (
+          pressState &&
+          Math.hypot(
+            event.clientX - pressState.x,
+            event.clientY - pressState.y,
+          ) > 8
+        )
+          pressState.moved = true;
+      });
+      document.addEventListener("pointerup", () => {
+        if (pressState && !pressState.moved) {
+          const target = pressState.target;
+          target.classList.add("tap-feedback");
+          setTimeout(() => target.classList.remove("tap-feedback"), 180);
+        }
+        pressState = null;
+      });
+      document.addEventListener("pointercancel", () => {
+        pressState = null;
+      });
+      document.addEventListener("click", (event) => {
+        if (event.detail !== 0) return;
+        const target = feedbackTarget(event.target);
+        if (!target) return;
+        target.classList.add("tap-feedback");
+        setTimeout(() => target.classList.remove("tap-feedback"), 180);
+      });
       tabs.forEach((t) =>
         t.addEventListener("click", () => {
           tabs.forEach((x) => x.classList.toggle("active", x === t));
@@ -960,7 +1012,7 @@
       }
       function card(d, i) {
         if (!d.ok)
-          return `<article class="card error"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p></article>`;
+          return `<article class="card error open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p></article>`;
         return `<article class="card open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count ${d.summary.available === 0 ? "zero" : ""}"><strong>${d.summary.available}<span>/${d.summary.total}</span></strong></div></div><div class="ports">${d.channels.map((c) => `<span class="port ${c.status === "I" ? "available" : ["F", "B", "D"].includes(c.status) ? "fault" : ""}" title="${esc(labels[c.status] || "未知")}">${c.number}</span>`).join("")}</div></article>`;
       }
       function bindOpen() {
