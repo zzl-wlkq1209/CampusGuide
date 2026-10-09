@@ -41,3 +41,22 @@ node server.js `
 仓库已包含 `netlify.toml` 和 Functions 适配。必须部署整个仓库，不能只上传 `public` 目录，否则 `/api/status`、`/api/credentials` 和 `/api/open` 不存在，充电查询会失败。把 GitHub 仓库导入 Netlify 后无需填写构建命令，发布目录和函数目录会自动从配置读取。
 
 部署完成后先访问 `/health`，应得到 `{"ok":true}`。如果只有页面能打开而 `/health` 返回 404，说明 Functions 或重定向规则没有随项目部署。
+
+## 自动更新凭证（Supabase + Windows 微信）
+
+自动更新采用按需模式：Netlify 查询发现凭证失效时写入刷新任务，Windows
+代理打开车充安，Reqable 脚本捕获授权响应并上传。网页保持原有加载状态并自动重试。
+代理还会在每周三、周日 00:00 主动执行一次相同流程。
+
+1. 在 Supabase SQL Editor 执行 `supabase.sql`。
+2. 在 Netlify 配置 `.env.example` 中的四个服务端环境变量。
+3. 在 Reqable 中导入并启用 `agent/reqable_capture.py`，保持系统代理与自动抓包可用。
+4. 复制 `agent/agent.env.example` 为 `agent/agent.env`，填写相同的代理密钥、Reqable 路径和捕获文件绝对路径。
+5. 执行 `npm run agent`，并把该命令配置为 Windows 登录后自动启动。
+
+代理默认从服务端获取 `weixin://` 链接打开车充安。完成上传和全设备查询后，它会结束
+`WeChatAppEx.exe` 和 `Reqable.exe`；微信主程序及其登录状态不受影响。若本机行为不同，可用
+`CHARGING_OPEN_COMMAND` 和 `CHARGING_CLOSE_COMMAND` 覆盖默认动作。
+
+所有凭证在写入 Supabase 前均使用 AES-256-GCM 加密；Supabase 表不向 `anon` 或
+`authenticated` 角色开放。Supabase Secret Key、加密密钥和代理密钥不得写入仓库。

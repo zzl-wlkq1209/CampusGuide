@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "agent": "node agent/windows-agent.js",
+    "check": "node --check server.js && node --check cloud-store.js && node --check netlify/functions/api.js && node --check agent/windows-agent.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"

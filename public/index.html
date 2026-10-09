@@ -1083,7 +1083,6 @@
             try {
               const { scheme } = await post("/api/open", {
                 id: card.dataset.id,
-                credentialText: storedCredential(),
               });
               card.removeAttribute("aria-busy");
               location.href = scheme;
@@ -1116,9 +1115,16 @@
         grid.innerHTML =
           '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
         try {
-          const { data } = await post("/api/status", {
-            credentialText: storedCredential(),
-          });
+          let result;
+          for (let attempt = 0; attempt < 37; attempt += 1) {
+            result = await post("/api/status");
+            if (!result.refreshing) break;
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+          }
+          if (!result || result.refreshing) {
+            throw new Error("自动更新凭证超时，请确认查询电脑处于开机解锁状态");
+          }
+          const { data } = result;
           grid.innerHTML = data.devices.map(card).join("");
           $("#available-total").textContent = data.summary.available;
           $("#device-total").textContent =
