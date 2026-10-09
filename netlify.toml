@@ -6,6 +6,11 @@
   node_bundler = "esbuild"
   included_files = ["captures/*.har"]
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "clipboard-read=(self), clipboard-write=(self)"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"

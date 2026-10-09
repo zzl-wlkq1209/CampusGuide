@@ -968,12 +968,44 @@
         $("#open-cabinet").disabled = !(parsedCode && parsedCabinet);
       }
       $("#parcel-message").addEventListener("input", parseParcel);
-      $("#paste-message").addEventListener("click", async () => {
+      async function readClipboardText() {
+        if (!window.isSecureContext)
+          throw new Error("剪贴板只能在 HTTPS 页面中读取");
+        if (navigator.clipboard?.readText) {
+          try {
+            const text = await navigator.clipboard.readText();
+            if (text) return text;
+          } catch {}
+        }
+        if (navigator.clipboard?.read) {
+          try {
+            const items = await navigator.clipboard.read();
+            for (const item of items) {
+              if (!item.types.includes("text/plain")) continue;
+              return await (await item.getType("text/plain")).text();
+            }
+          } catch {}
+        }
+        const field = $("#parcel-message");
+        field.focus();
+        field.select();
         try {
-          $("#parcel-message").value = await navigator.clipboard.readText();
+          if (document.execCommand("paste")) return field.value;
+        } catch {}
+        throw new Error("当前微信禁止网页自动读取剪贴板");
+      }
+      $("#paste-message").addEventListener("click", async () => {
+        const field = $("#parcel-message");
+        try {
+          const text = await readClipboardText();
+          if (!text) throw new Error("剪贴板中没有文本");
+          field.value = text;
           parseParcel();
-        } catch {
-          $("#parcel-result").textContent = "请获取剪贴板权限后重试";
+        } catch (error) {
+          field.focus();
+          field.select();
+          $("#parcel-result").textContent =
+            `${error.message}；请在已选中的输入框中长按选择“粘贴”`;
         }
       });
       async function copyCode() {
