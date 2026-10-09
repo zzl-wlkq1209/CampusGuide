@@ -1116,7 +1116,7 @@
           '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
         try {
           let result;
-          for (let attempt = 0; attempt < 37; attempt += 1) {
+          for (let attempt = 0; attempt < 24; attempt += 1) {
             result = await post("/api/status");
             if (!result.refreshing) break;
             await new Promise((resolve) => setTimeout(resolve, 2500));

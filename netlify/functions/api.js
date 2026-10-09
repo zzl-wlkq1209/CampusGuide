@@ -58,6 +58,13 @@ exports.handler = async (event) => {
       const data = await queryAllStatus(credentials);
       if (credentialsExpired(data) && isCloudConfigured()) {
         const refresh = await requestRefresh("web");
+        if (refresh.coolingDown || refresh.status === "failed") {
+          return response(503, {
+            ok: false,
+            code: "REFRESH_COOLDOWN",
+            message: "自动更新凭证失败，请5分钟后再试",
+          });
+        }
         return response(202, {
           ok: true,
           refreshing: true,

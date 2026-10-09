@@ -35,9 +35,16 @@ const LEGACY_OPEN_URL = process.env.LEGACY_OPEN_URL || "";
 const POLL_MS = Number(process.env.AGENT_POLL_MS || 3000);
 const CAPTURE_TIMEOUT_MS = Number(process.env.CAPTURE_TIMEOUT_MS || 60000);
 const REQABLE_READY_DELAY_MS = Number(
-  process.env.REQABLE_READY_DELAY_MS || 8000,
+  process.env.REQABLE_READY_DELAY_MS || 15000,
 );
 const REOPEN_DELAY_MS = Number(process.env.REOPEN_DELAY_MS || 12000);
+const MAX_OPEN_ATTEMPTS = Math.max(
+  1,
+  Math.min(3, Number(process.env.MAX_OPEN_ATTEMPTS || 2)),
+);
+const CAPTURE_ATTEMPT_TIMEOUT_MS = Number(
+  process.env.CAPTURE_ATTEMPT_TIMEOUT_MS || 20000,
+);
 
 function assertConfig() {
   const missing = [];
@@ -148,22 +155,22 @@ async function refreshCredential(requestId) {
   try {
     // 先让 Reqable 完成代理和抓包引擎初始化，再触发小程序请求。
     await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
-    await openChargingProgram();
     let capture;
-    try {
-      capture = await waitForCapture(
-        startedAt,
-        Math.min(CAPTURE_TIMEOUT_MS, 20_000),
-      );
-    } catch (error) {
-      // 微信/小程序可能复用已有页面会话，再打开一次以触发新的授权请求。
-      console.warn(
-        `[${new Date().toLocaleString()}] 首次授权未捕获，准备再次打开车充安`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, REOPEN_DELAY_MS));
+    for (let attempt = 1; attempt <= MAX_OPEN_ATTEMPTS; attempt += 1) {
+      if (attempt > 1) {
+        console.warn(
+          `[${new Date().toLocaleString()}] 第${attempt - 1}次未捕获，等待后进行最后一次尝试`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, REOPEN_DELAY_MS));
+      }
       await openChargingProgram();
-      capture = await waitForCapture(startedAt);
+      try {
+        capture = await waitForCapture(startedAt, CAPTURE_ATTEMPT_TIMEOUT_MS);
+        break;
+      } catch {}
     }
+    if (!capture)
+      throw new Error(`已尝试${MAX_OPEN_ATTEMPTS}次，未捕获授权响应`);
     console.log(
       `[${new Date().toLocaleString()}] 已捕获授权响应：${path.basename(capture.fileName)}`,
     );

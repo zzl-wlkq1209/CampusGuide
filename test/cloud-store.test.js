@@ -48,6 +48,16 @@ test("encrypted credentials and refresh requests round-trip through Supabase RES
     assert.equal((await store.refreshRow()).request_id, refresh.request_id);
     await store.patchRefresh({ status: "completed" });
     assert.equal((await store.refreshRow()).status, "completed");
+
+    tables.credential_refresh[0] = {
+      id: 1,
+      status: "failed",
+      request_id: "failed-job",
+      requested_at: new Date().toISOString(),
+    };
+    const cooledDown = await store.requestRefresh("test");
+    assert.equal(cooledDown.request_id, "failed-job");
+    assert.equal(cooledDown.coolingDown, true);
   } finally {
     global.fetch = originalFetch;
   }
