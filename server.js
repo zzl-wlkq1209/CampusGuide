@@ -11,14 +11,17 @@ const HOST = process.env.HOST || "127.0.0.1";
 const API_BASE = "https://mini.99cda.com/cda-mini-program/";
 const SCHEME_URL = "http://wx.99cda.com/cda-wx/generateScheme.do";
 const PUBLIC_DIR = path.join(__dirname, "public");
-const DEFAULT_HAR_PATH = path.join(
-  __dirname,
-  "captures",
+function bundledCapture(fileName) {
+  return [
+    path.join(__dirname, "captures", fileName),
+    path.join(process.cwd(), "captures", fileName),
+    path.resolve(__dirname, "..", "..", "captures", fileName),
+  ].find((candidate) => fs.existsSync(candidate));
+}
+const DEFAULT_HAR_PATH = bundledCapture(
   "mini.99cda.com_2026_10_09_01_31_25.har",
 );
-const DEFAULT_LEGACY_HAR_PATH = path.join(
-  __dirname,
-  "captures",
+const DEFAULT_LEGACY_HAR_PATH = bundledCapture(
   "wx.99cda.com_2026_10_09_01_01_44.har",
 );
 let runtimeCredentials = null;
@@ -516,7 +519,7 @@ async function handleRequest(req, res) {
     }
     if (
       req.method === "GET" &&
-      /^\/qrcodes\/takeout-[1-4]\.png$/.test(req.url)
+      /^\/qrcodes\/(?:takeout-[1-4]|food-[1-2])\.png$/.test(req.url)
     ) {
       return serveFile(res, req.url.slice(1), "image/png");
     }

@@ -524,7 +524,67 @@
         }
         .link-grid,
         .device-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.5rem;
+        }
+        .device-grid .card {
+          padding: 0.65rem;
+          border-radius: 0.8rem;
+        }
+        .device-grid .card-head {
+          gap: 0.35rem;
+        }
+        .device-grid .order {
+          width: 1.45rem;
+          height: 1.45rem;
+          border-radius: 0.4rem;
+          font-size: 0.72rem;
+        }
+        .device-grid .identity h3 {
+          font-size: 0.82rem;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+        .device-grid .identity p {
+          display: none;
+        }
+        .device-grid .count strong {
+          font-size: 1.2rem;
+        }
+        .device-grid .count span {
+          display: block;
+          max-width: 3.4rem;
+          font-size: 0.62rem;
+          line-height: 1.1;
+        }
+        .device-grid .ports {
+          grid-template-columns: repeat(5, 1fr);
+          gap: 0.22rem;
+          margin: 0.55rem 0;
+        }
+        .device-grid .port {
+          border-radius: 0.3rem;
+          font-size: 0.62rem;
+        }
+        .device-grid .card-foot {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 0.4rem;
+          padding-top: 0.5rem;
+        }
+        .device-grid .state-text {
+          font-size: 0.7rem;
+          text-align: center;
+        }
+        .device-grid .open-button {
+          width: 100%;
+          padding: 0.48rem 0.35rem;
+          font-size: 0.72rem;
+        }
+        .device-grid .error-message {
+          margin: 0.6rem 0;
+          font-size: 0.72rem;
+          line-height: 1.35;
         }
         .cabinet-grid {
           grid-template-columns: repeat(2, 1fr);
@@ -726,22 +786,34 @@
           </div>
         </div>
         <div class="link-grid">
-          <a
-            class="quick-link"
-            target="_blank"
-            rel="noopener"
-            href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"
-            ><span class="quick-icon">🍔</span>
-            <div><strong>肯德旺汉堡炸鸡</strong><span>打开点单页</span></div></a
-          ><a
-            class="quick-link"
-            target="_blank"
-            rel="noopener"
-            href="https://m.sqbe.cn/2d?c=23100902312159449143"
-            ><span class="quick-icon">🍜</span>
-            <div><strong>好这口重庆小面</strong><span>打开点单页</span></div></a
-          >
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://cymp.600vip.cn/jdd.html?code=E9FBE04A"
+              ><span class="quick-icon">🍔</span>
+              <div>
+                <strong>肯德旺汉堡炸鸡</strong><span>尝试直接打开</span>
+              </div></a
+            ><img src="/qrcodes/food-1.png" alt="肯德旺汉堡炸鸡点餐二维码" />
+          </article>
+          <article class="takeout-card">
+            <a
+              class="quick-link"
+              target="_blank"
+              rel="noopener"
+              href="https://m.sqbe.cn/2d?c=23100902312159449143"
+              ><span class="quick-icon">🍜</span>
+              <div>
+                <strong>好这口重庆小面</strong><span>尝试直接打开</span>
+              </div></a
+            ><img src="/qrcodes/food-2.png" alt="好这口重庆小面点餐二维码" />
+          </article>
         </div>
+        <p class="charge-note">
+          点击后若不是点餐页，请在微信中长按右侧二维码识别。
+        </p>
       </section>
       <p class="footer">北理校园常用服务快捷入口</p>
     </main>
