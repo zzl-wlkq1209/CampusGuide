@@ -56,6 +56,23 @@ test("expired status creates a refresh job which the Windows agent can claim", a
     assert.equal(poll.statusCode, 200);
     assert.equal(JSON.parse(poll.body).refresh.status, "working");
     assert.equal(tables.credential_refresh[0].status, "working");
+
+    tables.credential_refresh[0] = {
+      id: 1,
+      status: "failed",
+      request_id: "failed-job",
+      requested_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      completed_at: new Date().toISOString(),
+    };
+    const cooledDownStatus = await handler({
+      httpMethod: "POST",
+      path: "/api/status",
+      headers: {},
+      body: "{}",
+    });
+    assert.equal(cooledDownStatus.statusCode, 503);
+    assert.equal(JSON.parse(cooledDownStatus.body).code, "REFRESH_COOLDOWN");
+    assert.equal(tables.credential_refresh[0].request_id, "failed-job");
   } finally {
     global.fetch = originalFetch;
   }

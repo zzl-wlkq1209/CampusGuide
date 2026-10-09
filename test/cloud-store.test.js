@@ -53,7 +53,8 @@ test("encrypted credentials and refresh requests round-trip through Supabase RES
       id: 1,
       status: "failed",
       request_id: "failed-job",
-      requested_at: new Date().toISOString(),
+      requested_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      completed_at: new Date().toISOString(),
     };
     const cooledDown = await store.requestRefresh("test");
     assert.equal(cooledDown.request_id, "failed-job");

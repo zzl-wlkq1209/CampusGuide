@@ -115,10 +115,11 @@ async function patchRefresh(fields) {
 async function requestRefresh(source = "web") {
   const current = await refreshRow();
   if (["requested", "working"].includes(current?.status)) return current;
+  const failedAt = current?.completed_at || current?.requested_at;
   if (
     current?.status === "failed" &&
-    current.requested_at &&
-    Date.now() - new Date(current.requested_at).getTime() <
+    failedAt &&
+    Date.now() - new Date(failedAt).getTime() <
       REFRESH_FAILURE_COOLDOWN_MS
   ) {
     return { ...current, coolingDown: true };

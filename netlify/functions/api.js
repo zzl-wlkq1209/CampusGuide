@@ -16,6 +16,7 @@ const {
 } = require("../../cloud-store");
 
 const AGENT_KEY = process.env.CREDENTIAL_AGENT_KEY || "";
+const BUILD_VERSION = "2026-10-09-retry-v2";
 
 function response(statusCode, body) {
   return {
@@ -99,7 +100,11 @@ exports.handler = async (event) => {
       });
     }
     if (event.httpMethod === "GET" && route === "/health") {
-      return response(200, { ok: true, cloud: isCloudConfigured() });
+      return response(200, {
+        ok: true,
+        cloud: isCloudConfigured(),
+        build: BUILD_VERSION,
+      });
     }
     if (route.startsWith("/agent/") && !agentAuthorized(event)) {
       return response(401, { ok: false, message: "代理密钥无效" });
