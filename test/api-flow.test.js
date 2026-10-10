@@ -91,7 +91,7 @@ test("expired status creates a refresh job which the Windows agent can claim", a
       status: "requested",
       request_id: "unclaimed-job",
       source: "web:offline-query",
-      requested_at: new Date(Date.now() - 30_000).toISOString(),
+      requested_at: new Date(Date.now() - 90_000).toISOString(),
     };
     const agentOffline = await handler({
       httpMethod: "POST",

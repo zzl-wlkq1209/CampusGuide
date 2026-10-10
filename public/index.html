@@ -205,11 +205,15 @@
         min-width: 0;
       }
       .query-error {
-        max-width: min(32rem, 55vw);
+        display: block;
+        margin-top: 0.25rem;
         color: #ffc0c0;
         font-size: 0.82rem;
         line-height: 1.35;
-        text-align: right;
+        white-space: pre-line;
+      }
+      .query-error[hidden] {
+        display: none;
       }
       .button {
         min-height: 2.75rem;
@@ -695,7 +699,6 @@
           gap: 0.5rem;
         }
         .query-error {
-          max-width: 48vw;
           font-size: 0.72rem;
         }
         .link-grid,
@@ -851,10 +854,12 @@
         <div class="panel-head charging-head">
           <div>
             <h2>充电桩状态</h2>
-            <p id="query-meta">进入本页后自动查询。</p>
+            <p id="query-meta">
+              <span id="query-meta-text">进入本页后自动查询。</span>
+              <span class="query-error" id="query-error" hidden></span>
+            </p>
           </div>
           <div class="charging-actions">
-            <span class="query-error" id="query-error" hidden></span>
             <button class="button primary" id="query-button">重新查询</button>
           </div>
         </div>
@@ -1065,7 +1070,7 @@
       const queryButton = $("#query-button"),
         grid = $("#device-grid"),
         summary = $("#summary"),
-        queryMeta = $("#query-meta"),
+        queryMeta = $("#query-meta-text"),
         credentialPanel = $("#credential-panel"),
         credentialText = $("#credential-text"),
         credentialResult = $("#credential-result"),
@@ -1217,7 +1222,7 @@
         try {
           let result;
           let credentialRefreshStarted = false;
-          for (let attempt = 0; attempt < 24; attempt += 1) {
+          for (let attempt = 0; attempt < 60; attempt += 1) {
             result = await post("/api/status", { queryId });
             if (!result.refreshing) break;
             if (!credentialRefreshStarted) {

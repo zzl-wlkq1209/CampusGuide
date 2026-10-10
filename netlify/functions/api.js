@@ -17,8 +17,8 @@ const {
 } = require("../../cloud-store");
 
 const AGENT_KEY = process.env.CREDENTIAL_AGENT_KEY || "";
-const BUILD_VERSION = "2026-10-09-retry-v2";
-const AGENT_CLAIM_TIMEOUT_MS = 15_000;
+const BUILD_VERSION = "2026-10-10-fast-local-poll-v1";
+const AGENT_CLAIM_TIMEOUT_MS = 75_000;
 const AGENT_WORK_TIMEOUT_MS = 90_000;
 
 function response(statusCode, body) {
@@ -107,7 +107,7 @@ exports.handler = async (event) => {
           await patchRefresh({
             status: "failed",
             completed_at: new Date().toISOString(),
-            error_message: "电脑代理未在15秒内领取任务",
+            error_message: "电脑代理未在75秒内领取任务",
           });
           return refreshError(
             "故障点：查询电脑未执行代理任务",

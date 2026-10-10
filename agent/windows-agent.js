@@ -1,4 +1,5 @@
 const fs = require("node:fs");
+const net = require("node:net");
 const path = require("node:path");
 const { exec, execFile, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
@@ -37,7 +38,7 @@ const CAPTURE_TIMEOUT_MS = Number(process.env.CAPTURE_TIMEOUT_MS || 60000);
 const REQABLE_READY_DELAY_MS = Number(
   process.env.REQABLE_READY_DELAY_MS || 10000,
 );
-const REOPEN_DELAY_MS = Number(process.env.REOPEN_DELAY_MS || 12000);
+const REOPEN_DELAY_MS = Number(process.env.REOPEN_DELAY_MS || 0);
 const MAX_OPEN_ATTEMPTS = Math.max(
   1,
   Math.min(3, Number(process.env.MAX_OPEN_ATTEMPTS || 2)),
@@ -79,8 +80,61 @@ function runCommand(command) {
   });
 }
 
+const PROXY_REGISTRY_PATH =
+  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
+
+async function powershell(script) {
+  const { stdout } = await execFileAsync(
+    "powershell.exe",
+    ["-NoProfile", "-NonInteractive", "-Command", script],
+    { windowsHide: true },
+  );
+  return stdout.trim();
+}
+
+const notifyProxyChanged = `
+Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class WinInetNotify { [DllImport("wininet.dll")] public static extern bool InternetSetOption(IntPtr h, int o, IntPtr b, int l); }' -ErrorAction SilentlyContinue
+[WinInetNotify]::InternetSetOption([IntPtr]::Zero, 39, [IntPtr]::Zero, 0) | Out-Null
+[WinInetNotify]::InternetSetOption([IntPtr]::Zero, 37, [IntPtr]::Zero, 0) | Out-Null
+`;
+
+async function setReqableSystemProxy() {
+  await powershell(`
+$path = '${PROXY_REGISTRY_PATH}'
+Set-ItemProperty -Path $path -Name ProxyEnable -Value 1
+Set-ItemProperty -Path $path -Name ProxyServer -Value '127.0.0.1:9000'
+Set-ItemProperty -Path $path -Name ProxyOverride -Value '<-loopback>'
+Remove-ItemProperty -Path $path -Name AutoConfigURL -ErrorAction SilentlyContinue
+${notifyProxyChanged}
+`);
+}
+
+function waitForReqableProxy(timeoutMs = 8000) {
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve, reject) => {
+    const attempt = () => {
+      const socket = net.createConnection({ host: "127.0.0.1", port: 9000 });
+      socket.setTimeout(800);
+      socket.once("connect", () => {
+        socket.destroy();
+        resolve();
+      });
+      const retry = () => {
+        socket.destroy();
+        if (Date.now() >= deadline) reject(new Error("Reqable 代理端口未启动"));
+        else setTimeout(attempt, 300);
+      };
+      socket.once("error", retry);
+      socket.once("timeout", retry);
+    };
+    attempt();
+  });
+}
+
 function startReqable() {
-  const child = spawn(REQABLE_PATH, [], {
+  // 交给 Windows Explorer 启动，避免 Reqable 继承代理进程自身的
+  // HTTP_PROXY/HTTPS_PROXY 等环境变量；这与用户双击启动的环境一致。
+  const child = spawn("explorer.exe", [REQABLE_PATH], {
     detached: true,
     stdio: "ignore",
     windowsHide: false,
@@ -103,6 +157,19 @@ async function stopReqable() {
   }).catch(() => {});
 }
 
+async function restartReqable() {
+  console.log(`[${new Date().toLocaleString()}] 正在重启 Reqable`);
+  await stopReqable();
+  const deadline = Date.now() + 5000;
+  while ((await isReqableRunning()) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  startReqable();
+  await waitForReqableProxy(10000);
+  await setReqableSystemProxy();
+  console.log(`[${new Date().toLocaleString()}] Reqable 已重新启动，系统代理保持开启`);
+}
+
 async function openChargingProgram() {
   if (OPEN_COMMAND) return runCommand(OPEN_COMMAND);
   if (LEGACY_OPEN_URL) {
@@ -122,7 +189,8 @@ async function openChargingProgram() {
 
 async function closeChargingProgram() {
   if (CLOSE_COMMAND) return runCommand(CLOSE_COMMAND);
-  // 默认不操作任何微信进程。车充安窗口由用户手动关闭，避免影响微信登录状态。
+  // 新版微信将小程序窗口嵌入微信运行时，没有可安全单独关闭的窗口句柄。
+  // 不终止 WeChatAppEx，避免连带退出微信主程序。
 }
 
 async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
@@ -158,20 +226,17 @@ async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
 }
 
 async function refreshCredential(requestId) {
+  // 真正领取到任务后，先重启 Reqable 并强制开启它的系统代理，
+  // 再启动微信车充安进行捕获。完成后保持 Reqable 和代理开启。
+  await restartReqable();
   const startedAt = Date.now();
   fs.mkdirSync(path.dirname(CAPTURE_FILE), { recursive: true });
-  const reqableWasRunning = await isReqableRunning();
-  if (!reqableWasRunning) startReqable();
   try {
-    // 先让 Reqable 完成代理和抓包引擎初始化，再触发小程序请求。
-    if (!reqableWasRunning) {
-      await new Promise((resolve) => setTimeout(resolve, REQABLE_READY_DELAY_MS));
-    }
     let capture;
     for (let attempt = 1; attempt <= MAX_OPEN_ATTEMPTS; attempt += 1) {
       if (attempt > 1) {
         console.warn(
-          `[${new Date().toLocaleString()}] 第${attempt - 1}次未捕获，等待后进行最后一次尝试`,
+          `[${new Date().toLocaleString()}] 第${attempt - 1}次未捕获，立即进行最后一次尝试`,
         );
         await new Promise((resolve) => setTimeout(resolve, REOPEN_DELAY_MS));
       }
@@ -189,8 +254,14 @@ async function refreshCredential(requestId) {
     await api("credentials", { requestId, text: capture.text });
     console.log(`[${new Date().toLocaleString()}] 新凭证已验证并上传`);
   } finally {
-    if (!reqableWasRunning) await stopReqable();
+    await closeChargingProgram();
   }
+}
+
+async function ensureReqableReady() {
+  if (!(await isReqableRunning())) startReqable();
+  await waitForReqableProxy();
+  await setReqableSystemProxy();
 }
 
 let busy = false;
@@ -230,7 +301,19 @@ async function tick() {
   }
 }
 
-assertConfig();
-console.log("CampusGuide Windows 代理已启动");
-tick().catch(console.error);
-setInterval(() => tick().catch(console.error), POLL_MS);
+async function main() {
+  assertConfig();
+  const oneShot = process.argv.includes("--once");
+  const scheduledOnce = process.argv.includes("--scheduled-once");
+  console.log("CampusGuide Windows 代理已启动");
+  if (scheduledOnce) await api("request");
+  await tick();
+  if (!oneShot && !scheduledOnce) {
+    setInterval(() => tick().catch(console.error), POLL_MS);
+  }
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
