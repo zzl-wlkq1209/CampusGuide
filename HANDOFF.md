@@ -1,265 +1,291 @@
-# 北理校园直达：项目交接说明
+# 北理校园直达：项目交接文档
 
-> 本文用于在新的 Codex 对话中继续修改本项目。建议新对话首先阅读本文，再检查当前 Git 状态。
+> 用途：在新的 Codex 对话中继续维护本项目。新对话应先完整阅读本文，再检查 `git status`、最近提交和线上健康检查。本文不包含任何真实密钥或充电凭证。
 
-## 1. 项目位置与线上地址
+## 1. 当前项目与部署
 
 - 本地目录：`E:\codex临时\充电桩页面集成`
 - GitHub：`https://github.com/zzl-wlkq1209/CampusGuide.git`
 - 默认分支：`main`
-- Netlify：`https://bit-campusguide.netlify.app/`
+- 当前 Netlify：`https://campustest222.netlify.app/`
+- 线上健康检查：`https://campustest222.netlify.app/api/health`
 - 本地预览：`http://127.0.0.1:4173/`
-- 启动命令：`npm start`
-- Node.js 要求：18 或更高版本
+- Node.js：18 或更高版本
+- 最新提交：以 `git log -1 --oneline` 为准。
+- 本轮目标线上构建标识：`2026-10-13-placeholder-cards-v1`
 
-Netlify 与 GitHub 的 `main` 分支关联。通常提交并推送后会自动部署，无须手动上传。
+Netlify 连接 GitHub `main`。推送会消耗 Netlify 部署额度，因此除非用户明确要求推送，否则前端或 Function 修改先保留在本地并测试；不要为了小改动反复推送。
 
 ## 2. 项目结构
 
 ```text
 充电桩页面集成/
 ├─ public/
-│  ├─ index.html              # 页面、样式和浏览器端脚本均在此文件
-│  └─ qrcodes/                # 外卖柜、餐饮二维码图片
-├─ captures/                  # 充电服务抓包 HAR（包含敏感会话信息）
-├─ netlify/functions/api.js   # Netlify Functions 入口
-├─ server.js                  # 本地服务器、充电查询和跳转逻辑
-├─ netlify.toml               # Netlify 发布、函数和路由配置
-├─ package.json
+│  ├─ index.html                    # 单页应用：HTML、CSS、浏览器 JS
+│  ├─ 8250377f...txt                # 微信域名验证文件
+│  ├─ 59ca3047...txt                # 另一份验证文件
+│  └─ qrcodes/                      # 外卖、餐饮二维码
+├─ agent/
+│  ├─ windows-agent.js              # Windows 凭证代理
+│  ├─ agent.env.example             # 本机代理配置模板
+│  ├─ run-agent.cmd                 # 固定 Node 路径的启动器
+│  ├─ run-hidden.vbs                # 隐藏窗口、运行后退出
+│  └─ reqable_capture.py            # Reqable 脚本备用方案
+├─ captures/                        # 两套历史 HAR；可能含敏感会话
+├─ netlify/functions/api.js         # 线上 API 与刷新任务状态机
+├─ cloud-store.js                   # Supabase、AES-256-GCM、任务表
+├─ server.js                        # 设备清单、查询、凭证解析、跳转
+├─ supabase.sql                     # 两张表、RLS 与权限
+├─ test/                            # Node 流程测试
+├─ netlify.toml
+├─ .env.example
 ├─ README.md
-└─ HANDOFF.md                 # 本文
+└─ HANDOFF.md
 ```
 
-这是一个轻量项目，没有前端框架和构建步骤。`public/index.html` 是单页应用；本地由 `server.js` 提供静态文件和 API，线上 API 由 Netlify Function 调用同一份服务逻辑。
+项目没有前端框架和构建步骤。`public/index.html` 是完整前端；本地 `server.js` 和线上 Netlify Function 共用 `server.js`、`cloud-store.js` 中的业务逻辑。
 
-## 3. 页面现状
+## 3. 页面功能与交互
 
-页面包含四个顶栏标签，默认打开“外卖”：
+页面包含“外卖、快递、充电、餐饮”四个标签，默认打开外卖。
 
-1. 外卖：4 个外卖柜二维码，两列排列，仅供扫码，不尝试直接打开。
-2. 快递：粘贴近邻宝短信后识别取件信息，并打开相应柜机。
-3. 充电：查询多个充电桩的实时空闲通道数，并可点击设备卡片跳转充电。
-4. 餐饮：肯德旺可点击直达；好这口显示二维码扫码点餐。
+### 3.1 通用界面
 
-顶栏保持在页面上方，使用透明玻璃质感。
+- 页面普通文字不可选中，输入框与文本域仍可选择文字。
+- 手机端保持两列紧凑布局。
+- 点按卡片有反馈；触摸滚动不会被当作点击。
 
-## 4. 快递功能当前行为
+### 3.2 快递
 
-主要代码位于 `public/index.html` 中的 `parseParcel()`、`copyCode()` 和 `#open-cabinet` 点击事件附近。
+- 粘贴近邻宝短信后识别 8 位取件码、1—6 号柜和类似 `A18` 的柜门号。
+- 支持 `1481-3374` 与 `14813374`。
+- 点击“取件”会尝试复制纯数字取件码、清空表单并打开对应柜机页面。
+- 微信浏览器不允许网页主动读取剪贴板，因此不要恢复自动读取剪贴板。
 
-- 支持识别 `1481-3374` 和 `14813374` 两种八位取件码格式。
-- 支持识别 `1号柜` 至 `6号柜`。
-- 支持识别类似 `A18` 的柜门号。
-- 识别结果格式：`取件码 14813374 · 4号柜 · A18`。
-- “取件”按钮位于识别结果同行右侧，约为 `57 × 34px`。
-- 点击“取件”会尽力把纯数字取件码写入剪贴板，然后跳转对应柜机链接。
-- 不显示“已复制”提示。
-- 点击后会清空短信输入框、清空识别状态、禁用按钮，并恢复“等待粘贴短信”。
-- 已移除网页主动读取剪贴板功能，因为微信内置浏览器会禁止该权限。
+### 3.3 充电
 
-柜机链接在 `public/index.html` 的 `cabinetUrls` 数组中，数组下标依次对应 1—6 号柜。
+- 第一次切换到充电标签才发起查询。
+- 页面脚本加载后立即渲染 11 张“等待刷新”卡片，避免首次查询显示一个空白加载框。
+- 等待卡片列出设备名、10 个待刷新端口，并可直接点击手动打开对应充电页面。
+- 查询过程中保留现有 11 张卡片，不用全屏加载态替换。
+- 成功后卡片显示空闲数/总端口数与 10 个端口状态。
+- 某台查询失败时，该卡片保持在原位置并以红色故障样式显示。
+- 总体错误显示在“充电桩状态”标题下方，与“xx 更新 · 共 11 台”处于同一文本区域并换行；不占用“重新查询”按钮左侧，也不弹故障模态框。
+- 查询时按钮文字直接变为“查询中”；原结果一直保留，成功或失败后再更新状态文字。
+- 凭证状态只用页面中央白底渐隐浮窗提示 1 秒：`当前凭证有效` 或 `正在重新获取凭证`。
+- 长按“重新查询”约 650ms 会显示隐藏的手动凭证输入区；页面没有公开说明这一入口。
+- 当前前端最多轮询 60 次，每次间隔 2.5 秒，理论最长约 150 秒。用户曾表示不希望等待太久，但尚未要求再次部署缩短版本；若后续调整，可改回 24 次（约 60 秒）并与云端超时一起评估。
 
-## 5. 充电功能
+## 4. 充电设备清单
 
-### 5.1 交互行为
+权威清单位于 `server.js` 的 `DEVICES`。前端等待卡片在 `public/index.html` 的 `chargingDevices` 中复制了 `id/name`，增删设备时必须同步两处。
 
-- 第一次切换到“充电”标签时才自动查询，页面初始加载不会查询。
-- 用户可以手动点击“重新查询”。
-- 每张设备卡显示 `空闲数/总通道数`，空闲数大于 0 时用绿色，0 时用红色。
-- 整张设备卡可以点击跳转，不另设“打开充电页”按钮。
-- 滑动页面时不会误触点击动画；正常点按会显示圆角卡片动效。
-- 凭证失效的卡片仍然允许点击，尝试进入对应页面。
-- 凭证失效时自动展开“更新凭证”输入框。
-- 更新凭证后，设备进入加载状态；确认新结果返回后才收起凭证框。
+| 名称 | id | q | GID | operatorId | 模式 |
+|---|---|---|---|---|---|
+| 13号楼1号机 | `building-13-1` | `0400000000022269` | `FFFF000102116079` | `100664` | mini |
+| 13号楼2号机 | `building-13-2` | `0400000000022818` | `FFFF000102115980` | `100664` | mini |
+| 7号楼1号机 | `building-7-1` | `0400000000023982` | `FFFF000102120435` | `100664` | mini |
+| 7号楼2号机 | `building-7-2` | `0400000000027455` | `FFFF000102133318` | `100664` | mini |
+| 12号楼1号机 | `building-12-1` | `0400000000021978` | `FFFF000102115982` | `100664` | mini |
+| 12号楼2号机 | `building-12-2` | `0400000000022277` | `FFFF000102116731` | `100664` | mini |
+| 11号楼1号机 | `building-11-1` | `0400000000022229` | `FFFF000102116794` | `100664` | mini |
+| 11号楼2号机 | `building-11-2` | `0400000000022314` | `FFFF000102116140` | `100664` | mini |
+| 国防科技园1号机 | `defense-1` | `0400000000022530` | `FFFF000102117180` | `103745` | legacy |
+| 国防科技园2号机 | `defense-2` | `0400000000022753` | `FFFF000102111097` | `103745` | legacy |
+| 新1学生公寓 | `new-building-1` | `0400000000013573` | `FFFF000102099537` | `100664` | mini |
 
-### 5.2 设备清单
-
-设备定义位于 `server.js` 的 `DEVICES` 数组，当前顺序如下：
-
-| 名称 | q | GID | operatorId | 模式 |
-|---|---|---|---|---|
-| 13号楼1号机 | `0400000000022269` | `FFFF000102116079` | `100664` | mini |
-| 13号楼2号机 | `0400000000022818` | `FFFF000102115980` | `100664` | mini |
-| 7号楼1号机 | `0400000000023982` | `FFFF000102120435` | `100664` | mini |
-| 7号楼2号机 | `0400000000027455` | `FFFF000102133318` | `100664` | mini |
-| 12号楼1号机 | `0400000000021978` | `FFFF000102115982` | `100664` | mini |
-| 12号楼2号机 | `0400000000022277` | `FFFF000102116731` | `100664` | mini |
-| 11号楼1号机 | `0400000000022229` | `FFFF000102116794` | `100664` | mini |
-| 11号楼2号机 | `0400000000022314` | `FFFF000102116140` | `100664` | mini |
-| 国防科技园1号机 | `0400000000022530` | `FFFF000102117180` | `103745` | legacy |
-| 国防科技园2号机 | `0400000000022753` | `FFFF000102111097` | `103745` | legacy |
-| 新1学生公寓 | `0400000000013573` | `FFFF000102099537` | `100664` | mini |
-
-### 5.3 两套查询方式
-
-普通设备使用小程序接口：
+mini 设备查询：
 
 ```text
 POST https://mini.99cda.com/cda-mini-program/chargingBike.do
 ```
 
-请求依赖：
+依赖短期 `authorization`、`openId`、当前时间戳、`operatorId` 和 `GID`。
 
-- `authorization` 请求头
-- `openId`
-- 当前毫秒时间戳
-- 设备的 `operatorId`
-- 设备的 `GID`
-
-国防科技园两台设备仍走旧网页接口：
+legacy 设备查询：
 
 ```text
 GET http://wx.99cda.com/cda-wx/chargingBike.do
 ```
 
-旧接口依赖 HAR 内的 Session Cookie 和 openId。默认文件为：
+依赖旧 HAR 中的 Session Cookie 与 openId。HAR 位于 `captures/`，可能包含敏感信息，禁止把内容复制到文档、提交信息或公开聊天。
+
+## 5. 云端凭证与 Supabase
+
+Supabase 免费版足够当前单用户、低频使用。`supabase.sql` 创建：
+
+- `charging_credentials`：固定 `id=1`，保存 AES-256-GCM 加密后的凭证。
+- `credential_refresh`：固定 `id=1`，保存唯一刷新任务，状态为 `idle/requested/working/completed/failed`。
+
+RLS 已开启，并撤销 `anon`、`authenticated` 权限。Netlify 使用 Secret Key 访问。服务端环境变量：
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`（或兼容的 `SUPABASE_SERVICE_ROLE_KEY`）
+- `CREDENTIAL_ENCRYPTION_KEY`：32 字节随机值的 Base64
+- `CREDENTIAL_AGENT_KEY`：Netlify 与本机相同的长随机字符串
+
+这些真实值不得提交。浏览器也不能拿到 Secret Key、加密密钥或代理密钥。
+
+## 6. 网页按需更新凭证的完整流程
+
+1. 浏览器调用 `POST /api/status`。
+2. Netlify 读取 Supabase 中的加密凭证并查询 11 台设备。
+3. 若凭证有效，直接返回状态，前端显示 `当前凭证有效`。
+4. 若 mini 凭证失效，`requestRefresh()` 把单行任务写为 `requested`，来源包含本次网页 `queryId`。
+5. 本机隐藏计划任务在最多约 15 秒内调用 `/api/agent/poll`；该接口把任务标记为 `working`。
+6. Windows 代理执行 Reqable/微信捕获流程（见下一节）。
+7. 代理把完整授权响应提交到 `/api/agent/credentials`。
+8. Netlify 先用新凭证查询所有设备；确认有效后加密写入 Supabase，并把任务标记为 `completed`。
+9. 浏览器持续轮询 `/api/status`，拿到新结果后原位更新 11 张卡片。
+
+去重规则：Supabase 只有一行刷新任务；`requested` 或 `working` 时不会创建第二项。同一失败来源会返回该失败，用户再次点击产生新 `queryId` 后可立即重试，没有五分钟冷却。
+
+云端超时：
+
+- `requested` 超过 75 秒仍未领取：标记“查询电脑未执行代理任务”。
+- `working` 超过 90 秒仍未完成：标记“电脑代理执行超时”。
+- 错误文案显示在标题下方，要求用户检查对应故障点后重试。
+
+## 7. Windows 代理与 Reqable 生命周期
+
+核心文件：`agent/windows-agent.js`。
+
+单次任务顺序：
+
+1. 记录 Reqable 在任务开始前是否运行；若未运行，同时保存原 Windows 系统代理（例如 Clash 的 `127.0.0.1:7890` 和开关状态）。
+2. 只结束 `Reqable.exe`，通过 `explorer.exe` 重新打开 Reqable，使启动环境接近用户双击启动。
+3. 等待 `127.0.0.1:9000` 开始监听。
+4. 显式把 Windows 系统代理设为 `127.0.0.1:9000`，并通知 WinInet 配置变化。
+5. 先用 `LEGACY_OPEN_URL` 在微信建立旧页面授权上下文，再从 `/api/agent/open` 获取 `weixin://` scheme 打开车充安小程序。
+6. 从 `CREDENTIAL_CAPTURE_FILE` 和 Reqable 捕获目录中寻找任务开始后生成、大小不超过 16KB、`code=00` 且包含 `authorization/openId` 的响应。
+7. 每轮最多等待 20 秒；默认最多 2 轮。第一轮未捕获会立即再次打开车充安，不重启 Reqable。
+8. 捕获后上传并让云端验证。
+9. 不结束 `Weixin.exe`，也不结束 `WeChatAppEx`。曾验证过结束 `WeChatAppEx` 会连带退出主微信，禁止恢复该行为。
+10. 如果任务开始前 Reqable 已运行：任务结束后保持 Reqable 和代理运行。
+11. 如果任务开始前 Reqable 未运行：任务结束后关闭 Reqable，并恢复任务前保存的 Windows/Clash 代理状态，避免系统代理指向已关闭的 9000 端口。
+
+`CHARGING_CLOSE_COMMAND` 默认留空。新版微信小程序没有可靠、独立且安全的进程/窗口句柄，因此当前无法保证“只关闭车充安而绝不影响主微信”。不要用 `taskkill Weixin.exe` 或 `taskkill WeChatAppEx.exe`。
+
+## 8. 本机配置与计划任务
+
+真实本机配置在被 Git 忽略的 `agent/agent.env`。模板见 `agent/agent.env.example`。当前主要参数：
+
+- `SITE_URL=https://campustest222.netlify.app`
+- `REQABLE_PATH`、`WECHAT_PATH`
+- `LEGACY_OPEN_URL`
+- `MAX_OPEN_ATTEMPTS=2`
+- `CAPTURE_ATTEMPT_TIMEOUT_MS=20000`
+- `REOPEN_DELAY_MS=0`
+
+不要把 `agent.env` 加入 Git。
+
+隐藏启动链：
 
 ```text
-captures/wx.99cda.com_2026_10_09_01_01_44.har
+Windows 计划任务
+  -> wscript.exe agent/run-hidden.vbs --once
+  -> agent/run-agent.cmd
+  -> node agent/windows-agent.js --once
 ```
 
-普通小程序默认 HAR 为：
+VBS 以隐藏窗口运行并等待 Node 结束，不会弹命令行；代理不结束 `cmd.exe`、PowerShell、Windows Terminal 或用户现有终端。
 
-```text
-captures/mini.99cda.com_2026_10_09_01_31_25.har
-```
+当前本机有两个计划任务：
 
-注意：HAR 可能包含登录态、Cookie、openId 等敏感信息，不要公开分享或提交到公开位置。当前仓库已包含这些文件时，应优先考虑把仓库设为私有，并在凭证过期后替换或清理旧文件。
+### CampusGuide Credential Agent
 
-## 6. 凭证更新流程
+- 登录时触发一次。
+- 每分钟有 4 个错开的触发器：第 `00/15/30/45` 秒，即约每 15 秒检查一次。
+- 参数：`--once`。
+- 没有任务时立即退出，不常驻 Node。
+- `MultipleInstances=IgnoreNew`，防止重叠执行。
 
-长期有效的静态认证目前没有找到。普通设备的 `authorization` 会过期，因此页面提供手动更新。
+### CampusGuide Credential Weekly Refresh
 
-操作流程：
+- 每周三、周日 00:00。
+- 参数：`--scheduled-once`，先主动创建任务再执行。
+- 周计划任务是本机 Task Scheduler 配置，不由 Git 推送自动创建。
 
-1. 在微信小程序中打开“车充安”。
-2. 用 Reqable 捕获 `userAuthorization.do` 的响应。
-3. 复制完整响应内容；可以包含 HTTP 响应头和 JSON，不必手工截取。
-4. 在网站“充电”页点击“更新凭证”。
-5. 粘贴全部内容并点击“更新并查询”。
+注意：`agent/run-agent.cmd` 当前写死了此电脑的 Node 路径 `D:\Softwares\2_Research\nodejs\node.exe`。更换电脑或 Node 位置时必须修改该文件并重建计划任务。
 
-可识别的核心 JSON 格式：
-
-```json
-{
-  "msg": "获取成功",
-  "code": "00",
-  "data": {
-    "authorization": "此处为临时凭证",
-    "openId": "此处为微信用户标识"
-  }
-}
-```
-
-不要把真实凭证写入本文、README、截图或提交说明。
-
-浏览器端把用户粘贴的完整文本保存到 `sessionStorage`：
-
-```text
-bit-charging-credential-response
-```
-
-因此：
-
-- 同一标签页刷新后仍可继续使用。
-- 关闭标签页或浏览器后可能需要重新粘贴。
-- 凭证不会写入 Git 仓库。
-- Netlify Function 的内存变量不可靠，因为无服务器实例可能随时重建；真正连续查询主要依靠前端每次请求携带 `credentialText`。
-
-解析逻辑位于 `server.js` 的 `credentialsFromPayload()`。它可以从纯 JSON、HTTP 头加 JSON、或包含字段的长文本中提取 `authorization` 和 `openId`。
-
-## 7. API 路由
-
-本地和线上保持相同的前端路由：
+## 9. API 路由
 
 | 方法 | 路径 | 用途 |
 |---|---|---|
-| POST | `/api/status` | 查询全部充电桩状态 |
-| POST | `/api/credentials` | 解析、验证新凭证 |
-| POST | `/api/open` | 生成设备的小程序跳转链接 |
-| GET | `/health` | 健康检查 |
+| POST | `/api/status` | 查询全部设备；必要时创建/查询刷新任务 |
+| POST | `/api/credentials` | 手动解析并验证凭证 |
+| POST | `/api/open` | 生成指定设备跳转链接 |
+| GET | `/api/health` 或 `/health` | 云配置和构建版本检查 |
+| POST | `/api/agent/poll` | 本机领取任务，需要代理密钥 |
+| POST | `/api/agent/request` | 强制创建计划刷新任务，需要代理密钥 |
+| POST | `/api/agent/open` | 获取车充安 scheme，需要代理密钥 |
+| POST | `/api/agent/credentials` | 验证、保存新凭证，需要代理密钥 |
+| POST | `/api/agent/fail` | 本机上报失败，需要代理密钥 |
 
-线上由 `netlify.toml` 将 `/api/*` 重写到 `netlify/functions/api.js`。
+不要用 `/api/agent/poll` 做只读诊断，因为它会把 `requested` 改成 `working`，相当于领取任务。
 
-## 8. 微信和浏览器限制
+## 10. 本地开发、测试与上线验证
 
-- 微信内置浏览器禁止普通网页主动读取剪贴板，所以不要重新加入“自动粘贴”按钮，除非接受用户手动授权失败的情况。
-- 页面仍需要 `clipboard-write`，因为“取件”按钮会复制取件码；权限声明位于 `netlify.toml`。
-- 网页不能模拟微信扫码动作。二维码只能展示给用户长按识别或由另一设备扫描。
-- 部分微信、小程序或第三方点餐链接不能作为普通浏览器 URL 稳定打开，因此当前外卖柜和“好这口”以二维码为主。
-- 普通 HTTP 的 `wx.99cda.com` 在 HTTPS 网站前端直接请求会遇到混合内容和跨域问题，因此充电查询必须经过后端代理。
-
-## 9. 本地开发与验证
-
-启动：
+本地启动：
 
 ```powershell
 cd 'E:\codex临时\充电桩页面集成'
 npm start
 ```
 
-默认地址：`http://127.0.0.1:4173/`
-
-修改 `public/index.html` 后通常只需刷新浏览器。提交前建议运行：
+提交前至少运行：
 
 ```powershell
-npx prettier@3.6.2 --write public/index.html
-node -e "const fs=require('fs');const h=fs.readFileSync('public/index.html','utf8');new Function(h.split('<script>')[1].split('</script>')[0]);console.log('inline script syntax ok')"
-python -c "import tomllib; tomllib.load(open('netlify.toml','rb')); print('netlify.toml ok')"
+npm test
+npm run check
 git diff --check
 ```
 
-若修改充电功能，至少验证：
-
-- 默认仍打开“外卖”。
-- 切换到“充电”才首次发起查询。
-- 凭证有效、失效、更新中三种状态。
-- 手机宽度下充电卡片保持紧凑且无横向溢出。
-- 点击卡片的跳转和返回后再次点击。
-
-若修改快递功能，使用此测试短信：
-
-```text
-【近邻宝】凭「1481-3374」到北理工快递驿站4号柜A18取件。
-```
-
-预期识别结果：
-
-```text
-取件码 14813374 · 4号柜 · A18
-```
-
-## 10. 提交和部署
+页面内联脚本语法可额外检查：
 
 ```powershell
-git status --short
-git add <修改的文件>
-git commit -m "简洁明确的英文提交说明"
-git push origin HEAD
+node -e "const fs=require('fs'),vm=require('vm');const h=fs.readFileSync('public/index.html','utf8');const a=h.indexOf('<script>')+8,b=h.lastIndexOf('</script>');new vm.Script(h.slice(a,b));console.log('inline script syntax ok')"
 ```
 
-推送后等待 Netlify 自动部署，再访问线上地址确认新 HTML 已生效。不要把抓包得到的新认证字段直接写进提交信息。
+前端修改至少检查：
 
-## 11. 当前 Git 状态
+- 默认仍打开外卖标签。
+- 第一次进入充电页立即看到 11 张等待卡片，且可点击。
+- 手机两列布局无横向溢出。
+- 查询时旧卡片不消失。
+- 错误在更新时间下方换行显示，不出现在按钮左边。
+- 成功、失败、凭证自动刷新和长按隐藏入口。
 
-制作本文前，功能代码最新提交为：
+代理修改至少检查：
+
+- Reqable 原本开启：任务前重启，结束后保持开启。
+- Reqable 原本关闭：任务临时开启，结束后关闭并恢复 Clash/原系统代理。
+- 微信主程序一直保持登录且不退出。
+- 无任务的 15 秒检查不重启 Reqable。
+- 计划任务最终回到 `Ready`，返回码 `0x00000000`。
+
+推送后验证：
+
+1. 等待 `/api/health` 的 `build` 变成新版本。
+2. 请求线上 HTML，确认目标标记已出现，避免只确认 GitHub。
+3. 不要为了测试强制创建多个凭证刷新任务；强制 `/api/agent/request` 会在凭证仍有效时额外打开车充安。
+
+## 11. 安全与已知限制
+
+- 不提交 `.env`、`agent/agent.env`、真实授权响应、Supabase Secret Key、加密密钥或代理密钥。
+- HAR 可能已有敏感会话；仓库应保持私有，凭证失效后应考虑清理历史 HAR。
+- Windows 只有一个系统代理入口。Clash 和 Reqable 会争用同一注册表设置；本项目只在真正执行任务时强制 Reqable，并在 Reqable 原本关闭时恢复原状态。
+- 若 Reqable 原本开启，完成后按用户要求保留 Reqable 代理；之后 Clash 可能再次写回自己的代理，这是外部程序行为。
+- 网页无法直接唤醒 NAT 后的电脑；当前通过 Supabase 单行任务 + 本机约 15 秒轮询解决。
+- Netlify Functions 是无状态实例，不能依赖函数内存长期保存凭证。
+- Supabase 免费版休眠、网络波动、Windows 锁屏/休眠、微信未登录均可能导致自动刷新失败。
+
+## 12. 新对话建议开场
 
 ```text
-d29a025 Reset parcel form after pickup
-91305e1 Make parcel pickup button compact
-55a7672 Simplify parcel pickup action
-5dfaabe Show parcel locker door number
-```
-
-本文本身创建后会产生新的未提交文件，是否提交由后续操作决定。
-
-## 12. 给新对话的建议开场提示
-
-可以把下面这段直接发给新的 Codex 对话：
-
-```text
-请继续修改 E:\codex临时\充电桩页面集成 中的北理校园直达项目。
-先完整阅读 HANDOFF.md，再检查 git status、最近提交和当前页面。
-保留已有功能和视觉风格；修改后在本地验证手机布局，提交到 main 并确认 Netlify 自动部署成功。
-本轮我要修改的是：<在这里写新的需求>。
+请继续修改 E:\codex临时\充电桩页面集成 中的 CampusGuide 项目。
+先完整阅读 HANDOFF.md，再检查 git status、最近提交、计划任务状态和线上 /api/health。
+不要结束微信主程序或 WeChatAppEx，不要提交任何密钥或真实凭证。
+除非我明确要求推送，否则先本地修改和测试，避免消耗 Netlify 部署次数。
+本轮需求：<填写需求>。
 ```

@@ -109,6 +109,38 @@ ${notifyProxyChanged}
 `);
 }
 
+async function getSystemProxyState() {
+  const output = await powershell(`
+$item = Get-ItemProperty -Path '${PROXY_REGISTRY_PATH}'
+[pscustomobject]@{
+  ProxyEnable = [int]$item.ProxyEnable
+  ProxyServer = [string]$item.ProxyServer
+  ProxyOverride = [string]$item.ProxyOverride
+  AutoConfigURL = [string]$item.AutoConfigURL
+} | ConvertTo-Json -Compress
+`);
+  return JSON.parse(output);
+}
+
+function powershellLiteral(value) {
+  return `'${String(value || "").replaceAll("'", "''")}'`;
+}
+
+async function restoreSystemProxy(state) {
+  const optionalValue = (name, value) =>
+    value
+      ? `Set-ItemProperty -Path $path -Name ${name} -Value ${powershellLiteral(value)}`
+      : `Remove-ItemProperty -Path $path -Name ${name} -ErrorAction SilentlyContinue`;
+  await powershell(`
+$path = '${PROXY_REGISTRY_PATH}'
+Set-ItemProperty -Path $path -Name ProxyEnable -Value ${Number(state.ProxyEnable) || 0}
+${optionalValue("ProxyServer", state.ProxyServer)}
+${optionalValue("ProxyOverride", state.ProxyOverride)}
+${optionalValue("AutoConfigURL", state.AutoConfigURL)}
+${notifyProxyChanged}
+`);
+}
+
 function waitForReqableProxy(timeoutMs = 8000) {
   const deadline = Date.now() + timeoutMs;
   return new Promise((resolve, reject) => {
@@ -226,12 +258,16 @@ async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
 }
 
 async function refreshCredential(requestId) {
-  // 真正领取到任务后，先重启 Reqable 并强制开启它的系统代理，
-  // 再启动微信车充安进行捕获。完成后保持 Reqable 和代理开启。
-  await restartReqable();
-  const startedAt = Date.now();
-  fs.mkdirSync(path.dirname(CAPTURE_FILE), { recursive: true });
+  const reqableWasRunning = await isReqableRunning();
+  const previousProxy = reqableWasRunning
+    ? null
+    : await getSystemProxyState();
   try {
+    // 真正领取到任务后，先重启 Reqable 并强制开启它的系统代理，
+    // 再启动微信车充安进行捕获。
+    await restartReqable();
+    const startedAt = Date.now();
+    fs.mkdirSync(path.dirname(CAPTURE_FILE), { recursive: true });
     let capture;
     for (let attempt = 1; attempt <= MAX_OPEN_ATTEMPTS; attempt += 1) {
       if (attempt > 1) {
@@ -255,6 +291,13 @@ async function refreshCredential(requestId) {
     console.log(`[${new Date().toLocaleString()}] 新凭证已验证并上传`);
   } finally {
     await closeChargingProgram();
+    if (!reqableWasRunning) {
+      await stopReqable();
+      await restoreSystemProxy(previousProxy);
+      console.log(
+        `[${new Date().toLocaleString()}] Reqable 在任务前未运行，现已关闭并恢复原系统代理`,
+      );
+    }
   }
 }
 

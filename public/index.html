@@ -1077,9 +1077,6 @@
         credentialSave = $("#credential-save"),
         credentialToast = $("#credential-toast"),
         queryError = $("#query-error");
-      const credentialStorageKey = "bit-charging-credential-response";
-      const storedCredential = () =>
-        sessionStorage.getItem(credentialStorageKey) || "";
       const labels = {
         I: "空闲",
         C: "充电中",
@@ -1090,6 +1087,19 @@
         F: "通讯故障",
         B: "设备故障",
       };
+      const chargingDevices = [
+        ["building-13-1", "13号楼1号机"],
+        ["building-13-2", "13号楼2号机"],
+        ["building-7-1", "7号楼1号机"],
+        ["building-7-2", "7号楼2号机"],
+        ["building-12-1", "12号楼1号机"],
+        ["building-12-2", "12号楼2号机"],
+        ["building-11-1", "11号楼1号机"],
+        ["building-11-2", "11号楼2号机"],
+        ["defense-1", "国防科技园1号机"],
+        ["defense-2", "国防科技园2号机"],
+        ["new-building-1", "新1学生公寓"],
+      ].map(([id, name]) => ({ id, name }));
       const time = (i) =>
         new Intl.DateTimeFormat("zh-CN", {
           hour: "2-digit",
@@ -1147,6 +1157,14 @@
           return `<article class="card error open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>暂时无法读取</p></div></div><p class="error-message">${esc(d.message)}</p></article>`;
         return `<article class="card open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>${esc(d.reportedName)}</p></div><div class="count ${d.summary.available === 0 ? "zero" : ""}"><strong>${d.summary.available}<span>/${d.summary.total}</span></strong></div></div><div class="ports">${d.channels.map((c) => `<span class="port ${c.status === "I" ? "available" : ["F", "B", "D"].includes(c.status) ? "fault" : ""}" title="${esc(labels[c.status] || "未知")}">${c.number}</span>`).join("")}</div></article>`;
       }
+      function pendingCard(d, i) {
+        const ports = Array.from(
+          { length: 10 },
+          (_, port) =>
+            `<span class="port" title="等待刷新">${port + 1}</span>`,
+        ).join("");
+        return `<article class="card open-card" data-id="${esc(d.id)}" role="link" tabindex="0" aria-label="打开${esc(d.name)}充电页"><div class="card-head"><span class="order">${i + 1}</span><div class="identity"><h3>${esc(d.name)}</h3><p>等待刷新，可点击打开</p></div><div class="count"><strong>--<span>/--</span></strong></div></div><div class="ports">${ports}</div></article>`;
+      }
       function bindOpen() {
         $$(".open-card").forEach((card) => {
           let touchStart = null;
@@ -1198,6 +1216,8 @@
           });
         });
       }
+      grid.innerHTML = chargingDevices.map(pendingCard).join("");
+      bindOpen();
       addEventListener("pageshow", () =>
         $$(".open-card").forEach((card) => {
           card.removeAttribute("aria-busy");
@@ -1213,9 +1233,9 @@
         queryButton.textContent = "查询中";
         queryError.hidden = true;
         queryError.textContent = "";
+        queryMeta.textContent = "正在刷新 11 台设备…";
         if (!keepCurrentResults) {
           summary.hidden = true;
-          queryMeta.textContent = "正在刷新 11 台设备…";
           grid.innerHTML =
             '<div class="empty"><div><span class="spin"></span><strong>正在刷新充电桩状态…</strong></div></div>';
         }
@@ -1318,7 +1338,6 @@
           const r = await post("/api/credentials", {
             text: pastedCredential,
           });
-          sessionStorage.setItem(credentialStorageKey, pastedCredential);
           credentialResult.textContent = `${r.message}，正在刷新全部状态…`;
           const result = await queryAll();
           if (result && !result.expired) {
