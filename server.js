@@ -107,6 +107,134 @@ const DEVICES = [
     mode: "legacy",
   },
   {
+    id: "graduate-one-southeast",
+    name: "硕博一东南侧",
+    q: "0400000000012675",
+    gid: "FFFF000102132550",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "optoelectronics-north",
+    name: "光电教学楼北侧",
+    q: "0400000000013707",
+    gid: "FFFF000102075629",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-a-1",
+    name: "硕博A区1号机",
+    q: "0400000000024628",
+    gid: "FFFF000102124219",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-a-2",
+    name: "硕博A区2号机",
+    q: "0400000000025045",
+    gid: "FFFF000102123308",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-a-3",
+    name: "硕博A区3号机",
+    q: "0400000000025428",
+    gid: "FFFF000102124018",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-b-1",
+    name: "硕博B区1号机",
+    q: "0400000000025075",
+    gid: "FFFF000102122177",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-b-2",
+    name: "硕博B区2号机",
+    q: "0400000000025465",
+    gid: "FFFF000102124007",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-b-3",
+    name: "硕博B区3号机",
+    q: "0400000000024471",
+    gid: "FFFF000102124035",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-c-1",
+    name: "硕博C区1号机",
+    q: "0400000000025155",
+    gid: "FFFF000102122175",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-c-2",
+    name: "硕博C区2号机",
+    q: "0400000000024474",
+    gid: "FFFF000102123357",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-c-3",
+    name: "硕博C区3号机",
+    q: "0400000000024608",
+    gid: "FFFF000102124023",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-d-1",
+    name: "硕博D区1号机",
+    q: "0400000000022554",
+    gid: "FFFF000102115796",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-d-2",
+    name: "硕博D区2号机",
+    q: "0400000000024642",
+    gid: "FFFF000102123353",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-d-3",
+    name: "硕博D区3号机",
+    q: "0400000000024754",
+    gid: "FFFF000102122197",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-two-northwest-1",
+    name: "硕博二西北侧1号机",
+    q: "0400000000001532",
+    gid: "FFFF000102066589",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
+    id: "graduate-two-northwest-2",
+    name: "硕博二西北侧2号机",
+    q: "0400000000011639",
+    gid: "FFFF000102108484",
+    operatorId: "100664",
+    mode: "mini",
+  },
+  {
     id: "new-building-1",
     name: "新1学生公寓",
     q: "0400000000013573",
@@ -401,7 +529,7 @@ async function queryMiniDevice(device, credentials) {
 async function queryLegacyDevice(device, credentials) {
   const legacyRequest = loadLegacyRequest();
   if (!legacyRequest)
-    throw new Error("缺少国防科技园 HAR，请用 --legacy-har 指定");
+    throw new Error("缺少旧版页面 HAR，请用 --legacy-har 指定");
   const url = `http://wx.99cda.com/cda-wx/chargingBike.do?q=${encodeURIComponent(device.q)}&qType=device&openId=${encodeURIComponent(legacyRequest.openId)}`;
   const html = await getLegacyPage(url, legacyRequest.headers);
   const match = html.match(/details\s*=\s*(\{[\s\S]*?\});/);
@@ -461,7 +589,7 @@ async function generateScheme(device, credentialsOverride = null) {
   if (device.mode === "legacy") {
     const legacyRequest = loadLegacyRequest();
     if (!legacyRequest)
-      throw new Error("缺少国防科技园 HAR，请用 --legacy-har 指定");
+      throw new Error("缺少旧版页面 HAR，请用 --legacy-har 指定");
     return `http://wx.99cda.com/cda-wx/chargingBike.do?q=${encodeURIComponent(device.q)}&qType=device&openId=${encodeURIComponent(legacyRequest.openId)}`;
   }
   const credentials = credentialsOverride || loadCredentials();

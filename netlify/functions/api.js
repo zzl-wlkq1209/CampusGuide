@@ -17,7 +17,7 @@ const {
 } = require("../../cloud-store");
 
 const AGENT_KEY = process.env.CREDENTIAL_AGENT_KEY || "";
-const BUILD_VERSION = "2026-10-13-placeholder-cards-v1";
+const BUILD_VERSION = "2026-10-15-27-devices-v1";
 const AGENT_CLAIM_TIMEOUT_MS = 75_000;
 const AGENT_WORK_TIMEOUT_MS = 90_000;
 

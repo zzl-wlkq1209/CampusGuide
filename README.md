@@ -1,6 +1,6 @@
 # 校园充电位状态页
 
-这是一个校园快捷直达页面，包含外卖柜、快递驿站、11 台充电桩状态和校园餐饮入口。线上充电凭证经 AES-256-GCM 加密后保存在 Supabase，由 Netlify Function 使用，不会返回给浏览器。
+这是一个校园快捷直达页面，包含外卖柜、快递驿站、27 台充电桩状态和校园餐饮入口。线上充电凭证经 AES-256-GCM 加密后保存在 Supabase，由 Netlify Function 使用，不会返回给浏览器。
 
 快递板块支持粘贴近邻宝短信，自动识别带连字符或不带连字符的 8 位取件码及 1–6 号柜，并可复制取件码后打开对应柜机页面。
 
@@ -45,7 +45,7 @@ node server.js `
 自动更新采用按需模式：Netlify 查询发现凭证失效时写入刷新任务；Windows
 计划任务约每 15 秒进行一次隐藏的单次检查，领取任务后先重启 Reqable、强制开启
 Reqable 系统代理，再打开车充安并从 Reqable 捕获目录读取授权响应。网页保留原有
-11 张设备卡片并自动重试。另有每周三、周日 00:00 的主动刷新任务。
+27 张设备卡片并自动重试。另有每周三、周日 00:00 的主动刷新任务。
 
 1. 在 Supabase SQL Editor 执行 `supabase.sql`。
 2. 在 Netlify 配置 `.env.example` 中的四个服务端环境变量。
@@ -57,7 +57,7 @@ Reqable 系统代理，再打开车充安并从 Reqable 捕获目录读取授权
 链接打开车充安。每轮最多等待 20 秒，默认最多两轮。代理永远不会结束微信主程序或
 `WeChatAppEx`：如果 Reqable 在任务前已运行，任务后保持运行；如果任务前未运行，
 任务后关闭 Reqable 并恢复原 Windows/Clash 代理状态。可用
-`CHARGING_OPEN_COMMAND` 和 `CHARGING_CLOSE_COMMAND` 覆盖默认动作，但不要通过结束微信进程实现关闭车充安。
+`CHARGING_OPEN_COMMAND` 和 `CHARGING_CLOSE_COMMAND` 覆盖默认动作，但不要通过结束微信进程实现关闭车充安。任务结束时会将微信及车充安的可见窗口最小化到任务栏，微信进程和登录状态继续保留。
 
 所有凭证在写入 Supabase 前均使用 AES-256-GCM 加密；Supabase 表不向 `anon` 或
 `authenticated` 角色开放。Supabase Secret Key、加密密钥和代理密钥不得写入仓库。

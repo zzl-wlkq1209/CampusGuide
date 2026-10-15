@@ -888,7 +888,7 @@
             <span>空闲端口</span><strong id="available-total">0</strong>
           </div>
           <div class="metric">
-            <span>已查询设备</span><strong id="device-total">0/11</strong>
+            <span>已查询设备</span><strong id="device-total">0/27</strong>
           </div>
           <div class="metric">
             <span>端口总数</span><strong id="port-total">0</strong>
@@ -1098,6 +1098,22 @@
         ["building-11-2", "11号楼2号机"],
         ["defense-1", "国防科技园1号机"],
         ["defense-2", "国防科技园2号机"],
+        ["graduate-one-southeast", "硕博一东南侧"],
+        ["optoelectronics-north", "光电教学楼北侧"],
+        ["graduate-a-1", "硕博A区1号机"],
+        ["graduate-a-2", "硕博A区2号机"],
+        ["graduate-a-3", "硕博A区3号机"],
+        ["graduate-b-1", "硕博B区1号机"],
+        ["graduate-b-2", "硕博B区2号机"],
+        ["graduate-b-3", "硕博B区3号机"],
+        ["graduate-c-1", "硕博C区1号机"],
+        ["graduate-c-2", "硕博C区2号机"],
+        ["graduate-c-3", "硕博C区3号机"],
+        ["graduate-d-1", "硕博D区1号机"],
+        ["graduate-d-2", "硕博D区2号机"],
+        ["graduate-d-3", "硕博D区3号机"],
+        ["graduate-two-northwest-1", "硕博二西北侧1号机"],
+        ["graduate-two-northwest-2", "硕博二西北侧2号机"],
         ["new-building-1", "新1学生公寓"],
       ].map(([id, name]) => ({ id, name }));
       const time = (i) =>
@@ -1217,6 +1233,7 @@
         });
       }
       grid.innerHTML = chargingDevices.map(pendingCard).join("");
+      $("#device-total").textContent = `0/${chargingDevices.length}`;
       bindOpen();
       addEventListener("pageshow", () =>
         $$(".open-card").forEach((card) => {
@@ -1233,7 +1250,7 @@
         queryButton.textContent = "查询中";
         queryError.hidden = true;
         queryError.textContent = "";
-        queryMeta.textContent = "正在刷新 11 台设备…";
+        queryMeta.textContent = `正在刷新 ${chargingDevices.length} 台设备…`;
         if (!keepCurrentResults) {
           summary.hidden = true;
           grid.innerHTML =

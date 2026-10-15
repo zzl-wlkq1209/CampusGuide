@@ -225,6 +225,58 @@ async function closeChargingProgram() {
   // 不终止 WeChatAppEx，避免连带退出微信主程序。
 }
 
+async function minimizeWeChatWindows() {
+  const minimized = await powershell(`
+Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+public static class WeChatWindowMinimizer {
+  private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+  [DllImport("user32.dll")]
+  private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
+
+  [DllImport("user32.dll")]
+  private static extern bool IsWindowVisible(IntPtr hWnd);
+
+  [DllImport("user32.dll")]
+  private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+  [DllImport("user32.dll")]
+  private static extern bool ShowWindowAsync(IntPtr hWnd, int command);
+
+  public static int MinimizeAll() {
+    var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+      "Weixin", "WeChat", "WeChatAppEx"
+    };
+    var count = 0;
+    EnumWindows((hWnd, lParam) => {
+      if (!IsWindowVisible(hWnd)) return true;
+      uint processId;
+      GetWindowThreadProcessId(hWnd, out processId);
+      try {
+        var process = Process.GetProcessById((int)processId);
+        if (names.Contains(process.ProcessName)) {
+          ShowWindowAsync(hWnd, 6);
+          count++;
+        }
+      } catch { }
+      return true;
+    }, IntPtr.Zero);
+    return count;
+  }
+}
+'@ -ErrorAction SilentlyContinue
+[WeChatWindowMinimizer]::MinimizeAll()
+`);
+  console.log(
+    `[${new Date().toLocaleString()}] 已最小化 ${Number(minimized) || 0} 个微信相关窗口`,
+  );
+}
+
 async function waitForCapture(startedAt, timeoutMs = CAPTURE_TIMEOUT_MS) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -290,12 +342,21 @@ async function refreshCredential(requestId) {
     await api("credentials", { requestId, text: capture.text });
     console.log(`[${new Date().toLocaleString()}] 新凭证已验证并上传`);
   } finally {
-    await closeChargingProgram();
-    if (!reqableWasRunning) {
-      await stopReqable();
-      await restoreSystemProxy(previousProxy);
-      console.log(
-        `[${new Date().toLocaleString()}] Reqable 在任务前未运行，现已关闭并恢复原系统代理`,
+    try {
+      await closeChargingProgram();
+      if (!reqableWasRunning) {
+        await stopReqable();
+        await restoreSystemProxy(previousProxy);
+        console.log(
+          `[${new Date().toLocaleString()}] Reqable 在任务前未运行，现已关闭并恢复原系统代理`,
+        );
+      }
+    } finally {
+      // 必须作为凭证任务的最后一步执行，确保微信和车充安最终留在任务栏。
+      await minimizeWeChatWindows().catch((error) =>
+        console.warn(
+          `[${new Date().toLocaleString()}] 微信窗口最小化失败：${error.message}`,
+        ),
       );
     }
   }
